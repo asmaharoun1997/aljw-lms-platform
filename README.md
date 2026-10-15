@@ -7,6 +7,13 @@ Un `git push` sur `develop` déclenche automatiquement : compilation → tests �
 SonarQube → image Docker → déploiement DEV (GKE) → déploiement STAGING (VM).
 La production est déployée après validation manuelle depuis `main`.
 
+## Nouveau dans l'équipe ? Par où commencer
+
+1. [`CONTRIBUTING.md`](CONTRIBUTING.md) : installer les outils, accéder à GCP, première Pull Request
+2. [`docs/PLAN-EQUIPE.md`](docs/PLAN-EQUIPE.md) : les 4 rôles, qui fait quoi, dans quel ordre
+3. [`CONVENTIONS.md`](CONVENTIONS.md) : les noms et valeurs à utiliser partout
+4. [`docs/ADAPTATIONS.md`](docs/ADAPTATIONS.md) : les pièges de l'énoncé déjà identifiés
+
 ## Architecture
 
 ```mermaid
@@ -52,9 +59,10 @@ flowchart LR
 | Maven | 3.9 |
 | OS des VM | Rocky Linux 9 |
 
-> Le code fourni utilisait une base H2 embarquée. Il a été adapté pour MySQL
-> (branche `feature/app-mysql-support`). Voir `docs/application.md` pour le
-> fonctionnement de l'application.
+> Le code fourni utilise une base H2 embarquée. Il doit être adapté pour MySQL
+> (rôle C, branche `feature/app-mysql-support`). Les écarts entre l'énoncé et le code
+> sont listés dans [`docs/ADAPTATIONS.md`](docs/ADAPTATIONS.md). Le fonctionnement de
+> l'application (API, rôles, bundles) est décrit dans [`docs/application.md`](docs/application.md).
 
 ## Équipe
 
@@ -80,7 +88,8 @@ flowchart LR
 │   └── dev/              # LMS + MySQL, ConfigMap, Ingress
 ├── infra/                # Scripts gcloud : réseau, GKE, VM
 ├── scripts/              # deploy-staging.sh, deploy-prod.sh, rollback.sh
-├── docs/                 # Documentation, schémas, rapport
+├── docs/                 # Plan d'équipe, adaptations, doc de l'appli, rapport
+├── CONTRIBUTING.md       # Démarrage d'un nouveau membre, workflow Git
 └── CONVENTIONS.md        # Noms et valeurs communes à toute l'équipe
 ```
 
@@ -106,7 +115,7 @@ Prérequis : Git, Google Cloud CLI (`gcloud`, `kubectl`, `gke-gcloud-auth-plugin
 Docker, Java 21 et Maven pour le build local.
 
 ```bash
-git clone https://github.com/<owner>/lms-platform.git
+git clone https://github.com/Elwa-pro/lms-platform.git
 cd lms-platform
 git checkout develop
 
@@ -154,7 +163,10 @@ docker build -t lms-platform:local .
 
 ## Avancement
 
-- [ ] J1 — Réseau, cluster GKE, Artifact Registry, VM, dépôt Git
-- [ ] J2 — Jenkins, SonarQube, DEV sur GKE, Dockerfile, pipeline CI
-- [ ] J3 — Déploiement STAGING/PROD, Quality Gate, rollback, monitoring
-- [ ] J4 — Sécurisation, documentation, démonstration
+L'énoncé prévoit 4 jours ; ici les 4 étapes servent d'ordre de travail, sans date imposée.
+
+- [x] Dépôt Git structuré, plan d'équipe, conventions
+- [ ] Phase 1 · Socle — Réseau, cluster GKE, Artifact Registry, VM, migration MySQL
+- [ ] Phase 2 · Intégration continue — Jenkins, SonarQube, DEV sur GKE, Dockerfile, pipeline CI
+- [ ] Phase 3 · Livraison — Déploiement STAGING/PROD, Quality Gate, rollback, monitoring
+- [ ] Phase 4 · Sécurité & doc — Sécurisation, documentation, démonstration

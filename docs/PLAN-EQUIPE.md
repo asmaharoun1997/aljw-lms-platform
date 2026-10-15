@@ -1,6 +1,7 @@
 # Plan d'équipe — qui fait quoi
 
-Chaque membre porte **un domaine de bout en bout** (J1 → J4) et le présente à la démo.
+Chaque membre porte **un domaine de bout en bout** (phases 1 à 4) et le présente à la démo.
+À lire aussi : [`CONTRIBUTING.md`](../CONTRIBUTING.md) pour démarrer, [`ADAPTATIONS.md`](ADAPTATIONS.md) pour les pièges de l'énoncé.
 Les noms et valeurs partagés sont dans [`CONVENTIONS.md`](../CONVENTIONS.md).
 
 ## Vue d'ensemble
@@ -30,16 +31,18 @@ flowchart LR
 ```
 
 **Ce qui démarre sans attendre personne :** C (migration MySQL et Dockerfile en local avec Docker Desktop) et B (écriture des manifests et du Jenkinsfile).
-**Ce qui bloque tout le monde :** le réseau et le cluster de A. C'est la priorité absolue du J1 matin.
+**Ce qui bloque tout le monde :** le réseau et le cluster de A. C'est la priorité absolue de la phase 1.
 
-## Planning
+## Phases
 
-| | A — Plateforme | B — CI | C — Application | D — VM |
+L'énoncé découpe le projet en 4 jours. Ici, pas de date imposée : on garde ces 4 phases comme ordre de travail, chacun avance à son rythme. Une phase est finie quand ses tâches sont cochées.
+
+| Phase | A — Plateforme | B — CI | C — Application | D — VM |
 |---|---|---|---|---|
-| **J1** | Réseau, NAT, cluster, registry, script IaC | Manifests Jenkins + Sonar (local) | Migration MySQL, Dockerfile (local) | VM créées, Java/Tomcat/Apache/MySQL |
-| **J2** | Aide B pour les droits GKE ↔ registry | Jenkins + Sonar déployés, pipeline jusqu'au DEV | MySQL + LMS en DEV sur GKE | WAR déployé à la main sur STAGING, HTTPS |
-| **J3** | Monitoring, uptime checks, alertes | Stages STAGING/PROD, Quality Gate | Corriger 3 issues Sonar, tests | Scripts deploy/rollback, test de rollback |
-| **J4** | NetworkPolicy, RBAC, Trivy, coûts | Durcissement Jenkins, secrets | Secrets K8s, image minimale | Durcissement Tomcat/MySQL/SSH |
+| **1 · Socle** | Réseau, NAT, cluster, registry, script IaC | Manifests Jenkins + Sonar (local) | Migration MySQL, Dockerfile (local) | VM créées, Java/Tomcat/Apache/MySQL |
+| **2 · Intégration continue** | Aide B pour les droits GKE ↔ registry | Jenkins + Sonar déployés, pipeline jusqu'au DEV | MySQL + LMS en DEV sur GKE | WAR déployé à la main sur STAGING, HTTPS |
+| **3 · Livraison** | Monitoring, uptime checks, alertes | Stages STAGING/PROD, Quality Gate | Corriger 3 issues Sonar, tests | Scripts deploy/rollback, test de rollback |
+| **4 · Sécurité & doc** | NetworkPolicy, RBAC, Trivy, coûts | Durcissement Jenkins, secrets | Secrets K8s, image minimale | Durcissement Tomcat/MySQL/SSH |
 
 ---
 
@@ -56,15 +59,15 @@ flowchart LR
 - **Les coûts** : extinction du cluster et des VM quand personne ne travaille
 
 **Tâches**
-- [ ] J1 — Créer le VPC `lms-vpc` et les 3 sous-réseaux (avec les plages secondaires pods/services)
-- [ ] J1 — Créer les règles firewall (SSH via IAP seulement, web, interne)
-- [ ] J1 — Créer Cloud Router + Cloud NAT
-- [ ] J1 — Créer le cluster `lms-cluster` et les namespaces `cicd`, `quality`, `dev`
-- [ ] J1 — Créer le dépôt `lms-docker` dans Artifact Registry
-- [ ] J1 — Écrire `infra/network.sh`, `infra/gke-cluster.sh`, `infra/registry.sh` et `infra/destroy.sh`
-- [ ] J3 — Uptime checks sur STAGING et PROD, alertes mail (health check KO, CPU > 80 %)
-- [ ] J4 — NetworkPolicy entre namespaces, RBAC, scan Trivy des images
-- [ ] J4 — Estimation des coûts réels pour le rapport
+- [ ] P1 — Créer le VPC `lms-vpc` et les 3 sous-réseaux (avec les plages secondaires pods/services)
+- [ ] P1 — Créer les règles firewall (SSH via IAP seulement, web, interne)
+- [ ] P1 — Créer Cloud Router + Cloud NAT
+- [ ] P1 — Créer le cluster `lms-cluster` et les namespaces `cicd`, `quality`, `dev`
+- [ ] P1 — Créer le dépôt `lms-docker` dans Artifact Registry
+- [ ] P1 — Écrire `infra/network.sh`, `infra/gke-cluster.sh`, `infra/registry.sh` et `infra/destroy.sh`
+- [ ] P3 — Uptime checks sur STAGING et PROD, alertes mail (health check KO, CPU > 80 %)
+- [ ] P4 — NetworkPolicy entre namespaces, RBAC, scan Trivy des images
+- [ ] P4 — Estimation des coûts réels pour le rapport
 
 **Comment, en bref**
 ```bash
@@ -93,14 +96,14 @@ gcloud container clusters resize lms-cluster --num-nodes=0 --zone=europe-west1-b
 - La gestion des credentials dans Jenkins (aucun secret dans le repo)
 
 **Tâches**
-- [ ] J1 — Écrire les manifests Jenkins (PVC 10 Go, Deployment, Service) et SonarQube (PVC 5 Go, Deployment, Service)
-- [ ] J2 — Déployer Jenkins et SonarQube, installer les plugins (Pipeline, Kubernetes, Docker Pipeline, SonarQube Scanner, SSH Agent)
-- [ ] J2 — Créer les credentials (`sonar-token`, `github-token`) et le projet `lms-platform` dans SonarQube
-- [ ] J2 — Jenkinsfile : Checkout → Compile → Test → SonarQube → Package → Docker → Deploy DEV
-- [ ] J2 — Webhook GitHub (ou polling si Jenkins n'est pas joignable depuis Internet)
-- [ ] J3 — Stages Deploy STAGING (auto sur `develop`), Smoke tests, Deploy PROD (`input`, sur `main`)
-- [ ] J3 — Quality Gate : bloquant sur bugs et vulnérabilités critiques
-- [ ] J4 — Durcissement : compte admin Jenkins, droits minimaux, nettoyage des builds
+- [ ] P1 — Écrire les manifests Jenkins (PVC 10 Go, Deployment, Service) et SonarQube (PVC 5 Go, Deployment, Service)
+- [ ] P2 — Déployer Jenkins et SonarQube, installer les plugins (Pipeline, Kubernetes, Docker Pipeline, SonarQube Scanner, SSH Agent)
+- [ ] P2 — Créer les credentials (`sonar-token`, `github-token`) et le projet `lms-platform` dans SonarQube
+- [ ] P2 — Jenkinsfile : Checkout → Compile → Test → SonarQube → Package → Docker → Deploy DEV
+- [ ] P2 — Webhook GitHub (ou polling si Jenkins n'est pas joignable depuis Internet)
+- [ ] P3 — Stages Deploy STAGING (auto sur `develop`), Smoke tests, Deploy PROD (`input`, sur `main`)
+- [ ] P3 — Quality Gate : bloquant sur bugs et vulnérabilités critiques
+- [ ] P4 — Durcissement : compte admin Jenkins, droits minimaux, nettoyage des builds
 
 **Comment, en bref**
 ```bash
@@ -127,14 +130,14 @@ kubectl -n cicd exec deploy/jenkins -- cat /var/jenkins_home/secrets/initialAdmi
 - La correction des issues SonarQube
 
 **Tâches**
-- [ ] J1 — Branche `feature/app-mysql-support` : driver MySQL dans `pom.xml`, driver choisi selon l'URL, `CLOB` → `LONGTEXT`, `` `groups` `` entre backticks, `MERGE` → `INSERT … ON DUPLICATE KEY UPDATE`, `DATEADD` remplacé, `BackupService` adapté
-- [ ] J1 — Tester en local : MySQL en conteneur + l'appli, cliquer sur chaque écran
-- [ ] J1 — Écrire le `Dockerfile` multi-stage et vérifier `docker build` en local
-- [ ] J2 — Manifests `k8s/dev/` : MySQL (PVC 5 Go, Secret `mysql-creds`), LMS (`lms-app`), Service, Ingress
-- [ ] J2 — Passer la config en `-D` via `JAVA_OPTS` (l'appli ne lit pas les variables d'environnement)
-- [ ] J3 — Corriger au moins 3 issues SonarQube sur `feature/app-sonar-fixes`
-- [ ] J3 — Ajouter quelques tests unitaires (`PasswordUtil`, `JsonHelper`)
-- [ ] J4 — Image plus légère et sans outils inutiles, vérifier le scan Trivy
+- [ ] P1 — Branche `feature/app-mysql-support` : driver MySQL dans `pom.xml`, driver choisi selon l'URL, `CLOB` → `LONGTEXT`, `` `groups` `` entre backticks, `MERGE` → `INSERT … ON DUPLICATE KEY UPDATE`, `DATEADD` remplacé, `BackupService` adapté
+- [ ] P1 — Tester en local : MySQL en conteneur + l'appli, cliquer sur chaque écran
+- [ ] P1 — Écrire le `Dockerfile` multi-stage et vérifier `docker build` en local
+- [ ] P2 — Manifests `k8s/dev/` : MySQL (PVC 5 Go, Secret `mysql-creds`), LMS (`lms-app`), Service, Ingress
+- [ ] P2 — Passer la config en `-D` via `JAVA_OPTS` (l'appli ne lit pas les variables d'environnement)
+- [ ] P3 — Corriger au moins 3 issues SonarQube sur `feature/app-sonar-fixes`
+- [ ] P3 — Ajouter quelques tests unitaires (`PasswordUtil`, `JsonHelper`)
+- [ ] P4 — Image plus légère et sans outils inutiles, vérifier le scan Trivy
 
 **Comment, en bref**
 ```bash
@@ -163,15 +166,15 @@ kubectl -n dev rollout status deployment/lms-app
 - L'ops-agent (logs vers Cloud Logging)
 
 **Tâches**
-- [ ] J1 — Créer les 2 VM (Rocky Linux 9, `e2-medium`, tag `app-server`) dans leurs sous-réseaux
-- [ ] J1 — Installer Java 21, Tomcat 11 (archive Apache + service systemd), MySQL 8, Apache httpd
-- [ ] J1 — Créer la base `lms_platform` et l'utilisateur `lms`, MySQL en écoute sur `127.0.0.1`
-- [ ] J2 — Apache : VirtualHost 80 → redirection 301, VirtualHost 443 → proxy vers Tomcat, en-têtes de sécurité
-- [ ] J2 — Déployer le WAR à la main sur STAGING et valider l'appli
-- [ ] J2 — Utilisateur `deploy` + clé publique Jenkins dans `authorized_keys`, droits sur `webapps/`
-- [ ] J3 — Écrire `scripts/deploy-staging.sh`, `deploy-prod.sh`, `rollback.sh` (corriger le bug du heredoc de l'énoncé)
-- [ ] J3 — Tester un rollback complet (déployer un WAR cassé, restaurer)
-- [ ] J4 — Durcissement : webapps Tomcat par défaut supprimées, MySQL sans accès distant, SSH par clé uniquement
+- [ ] P1 — Créer les 2 VM (Rocky Linux 9, `e2-medium`, tag `app-server`) dans leurs sous-réseaux
+- [ ] P1 — Installer Java 21, Tomcat 11 (archive Apache + service systemd), MySQL 8, Apache httpd
+- [ ] P1 — Créer la base `lms_platform` et l'utilisateur `lms`, MySQL en écoute sur `127.0.0.1`
+- [ ] P2 — Apache : VirtualHost 80 → redirection 301, VirtualHost 443 → proxy vers Tomcat, en-têtes de sécurité
+- [ ] P2 — Déployer le WAR à la main sur STAGING et valider l'appli
+- [ ] P2 — Utilisateur `deploy` + clé publique Jenkins dans `authorized_keys`, droits sur `webapps/`
+- [ ] P3 — Écrire `scripts/deploy-staging.sh`, `deploy-prod.sh`, `rollback.sh` (corriger le bug du heredoc de l'énoncé)
+- [ ] P3 — Tester un rollback complet (déployer un WAR cassé, restaurer)
+- [ ] P4 — Durcissement : webapps Tomcat par défaut supprimées, MySQL sans accès distant, SSH par clé uniquement
 
 **Comment, en bref**
 ```bash
@@ -190,10 +193,10 @@ sudo systemctl enable --now mysqld httpd
 
 ## Tâches communes
 
-- [ ] J1 — Chacun : accès au projet `formation-equipe`, `gcloud` configuré en `europe-west1`
-- [ ] J1 — Chacun : `kubectl get pods -A` fonctionne
-- [ ] J4 — Chacun : sa partie du rapport (architecture de sa brique, choix, difficultés et solutions)
-- [ ] J4 — Ensemble : répétition de la démo complète, de `git push` jusqu'au rollback
+- [ ] P1 — Chacun : accès au projet `formation-equipe`, `gcloud` configuré en `europe-west1`
+- [ ] P1 — Chacun : `kubectl get pods -A` fonctionne
+- [ ] P4 — Chacun : sa partie du rapport (architecture de sa brique, choix, difficultés et solutions)
+- [ ] P4 — Ensemble : répétition de la démo complète, de `git push` jusqu'au rollback
 - [ ] Fin — `infra/destroy.sh` : tout supprimer pour arrêter la facturation
 
 ## Fonctionnement
