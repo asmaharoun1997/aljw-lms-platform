@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4285f4;--bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--text:#1e293b;--text2:#64748b;--text3:#94a3b8;--error:#ef4444;--green:#22c55e;--radius:12px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;max-width:440px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.logo{text-align:center;margin-bottom:24px}
+.logo img{max-height:48px;margin-bottom:10px}
+.logo h1{font-size:19px;font-weight:700}.logo p{font-size:12px;color:var(--text2);margin-top:4px}
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:20px}
+.tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);transition:.2s;border:none;background:none}
+.tab.active{background:var(--surface);color:var(--primary);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:13px;outline:none;transition:.2s}
+.fg input:focus,.fg select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(66,133,244,.12)}
+.msg{font-size:12px;padding:10px 14px;border-radius:8px;margin-bottom:14px;display:none}
+.msg.show{display:block}
+.msg.err{background:#fef2f2;border:1px solid #fecaca;color:var(--error)}
+.msg.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:var(--green)}
+.msg.info{background:#eff6ff;border:1px solid #bfdbfe;color:var(--primary)}
+.submit{width:100%;padding:11px;border:none;border-radius:var(--radius);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;color:#fff;background:var(--primary)}
+.submit:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.submit:disabled{opacity:.5;cursor:default;transform:none}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:11px;color:var(--text3)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.oauth-btns{display:flex;flex-direction:column;gap:8px}
+.oauth-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 16px;border:1px solid var(--border);border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.2s;background:var(--surface);color:var(--text)}
+.oauth-btn:hover{background:var(--bg);border-color:var(--text3)}
+.oauth-btn svg{width:18px;height:18px;flex-shrink:0}
+.panel{display:none}.panel.active{display:block}
+.footer{text-align:center;margin-top:16px;font-size:10px;color:var(--text3)}
+.role-cards{display:flex;gap:8px;margin-bottom:14px}
+.role-card{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;transition:.2s}
+.role-card:hover{border-color:var(--primary);background:rgba(66,133,244,.03)}
+.role-card.selected{border-color:var(--primary);background:rgba(66,133,244,.06)}
+.role-card .icon{font-size:24px;margin-bottom:4px}
+.role-card .label{font-size:12px;font-weight:600}
+.role-card .desc{font-size:10px;color:var(--text3);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <img id="logoImg" src="" alt="" style="display:none">
+    <h1 id="platformName">LMS Platform</h1>
+    <p>Plateforme de formation</p>
+  </div>
+  <div class="tabs" id="tabBar">
+    <div class="tab active" onclick="switchPanel('login')">Connexion</div>
+    <div class="tab" onclick="switchPanel('register')" id="regTab" style="display:none">Inscription</div>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <!-- LOGIN -->
+  <div class="panel active" id="panLogin">
+    <div class="fg"><label>Identifiant</label><input id="username" placeholder="Votre identifiant" autocomplete="username"></div>
+    <div class="fg"><label>Mot de passe</label><input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password"></div>
+    <button class="submit" id="loginBtn" onclick="doLogin()">Se connecter</button>
+    <div class="divider" id="oauthDivider" style="display:none">ou continuer avec</div>
+    <div class="oauth-btns" id="oauthBtns"></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="panel" id="panRegister">
+    <div class="role-cards">
+      <div class="role-card selected" onclick="selectRole('ETUDIANT',this)" id="roleEtu">
+        <div class="icon">🎓</div><div class="label">Étudiant</div><div class="desc">Accès aux cours et QCMs</div>
+      </div>
+      <div class="role-card" onclick="selectRole('FORMATEUR',this)" id="roleForm">
+        <div class="icon">👨‍🏫</div><div class="label">Formateur</div><div class="desc">Publier des formations</div>
+      </div>
+      <div class="role-card" onclick="selectRole('GED',this)" id="roleGed">
+        <div class="icon">📄</div><div class="label">GED</div><div class="desc">Accès aux documents</div>
+      </div>
+    </div>
+    <div class="fg"><label>Nom</label><input id="rNom" placeholder="Votre nom"></div>
+    <div class="fg"><label>Prénom</label><input id="rPrenom" placeholder="Votre prénom"></div>
+    <div class="fg"><label>Email</label><input id="rEmail" type="email" placeholder="votre@email.com"></div>
+    <div class="fg"><label>Identifiant</label><input id="rUsername" placeholder="Choisissez un identifiant"></div>
+    <div class="fg"><label>Mot de passe (min. 6 caractères)</label><input id="rPassword" type="password" placeholder="Mot de passe"></div>
+    <button class="submit" onclick="doRegister()">Créer mon compte</button>
+    <div class="divider" id="oauthRegDivider" style="display:none">ou s'inscrire avec</div>
+    <div class="oauth-btns" id="oauthRegBtns"></div>
+  </div>
+
+  <div class="footer">LMS Platform v1.0.1</div>
+</div>
+<script>
+let settings={},selectedRole='ETUDIANT';
+const $=id=>document.getElementById(id);
+
+async function init(){
+  settings=await fetch('api/auth/settings').then(r=>r.json()).catch(()=>({}));
+  if(settings.platformName)$('platformName').textContent=settings.platformName;
+  if(settings.logoUrl){$('logoImg').src=settings.logoUrl;$('logoImg').style.display='';}
+  if(settings.primaryColor)document.documentElement.style.setProperty('--primary',settings.primaryColor);
+  document.title=(settings.platformName||'LMS')+' — Connexion';
+
+  // Show/hide registration tab
+  if(settings.registrationEnabled){$('regTab').style.display='';}
+
+  // OAuth buttons
+  let oauthHtml='';
+  if(settings.googleOAuthEnabled)oauthHtml+=`<button class="oauth-btn" onclick="oauthLogin('google')"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</button>`;
+  if(settings.microsoftOAuthEnabled)oauthHtml+=`<button class="oauth-btn" onclick="oauthLogin('microsoft')"><svg viewBox="0 0 24 24"><rect fill="#F25022" x="1" y="1" width="10" height="10"/><rect fill="#7FBA00" x="13" y="1" width="10" height="10"/><rect fill="#00A4EF" x="1" y="13" width="10" height="10"/><rect fill="#FFB900" x="13" y="13" width="10" height="10"/></svg>Microsoft</button>`;
+  if(oauthHtml){
+    $('oauthDivider').style.display='';$('oauthBtns').innerHTML=oauthHtml;
+    $('oauthRegDivider').style.display='';$('oauthRegBtns').innerHTML=oauthHtml.replace(/oauthLogin\(/g,'oauthRegister(');
+  }
+
+  // Show allowed roles
+  const roles=(settings.registrationRoles||'ETUDIANT,FORMATEUR,GED').split(',');
+  if(!roles.includes('FORMATEUR'))$('roleForm').style.display='none';
+  if(!roles.includes('ETUDIANT'))$('roleEtu').style.display='none';
+  if(!roles.includes('GED'))$('roleGed').style.display='none';
+
+  // Handle URL params (OAuth callbacks)
+  const params=new URLSearchParams(location.search);
+  if(params.get('registered')==='pending')showMsg('ok','Inscription enregistrée ! Votre compte sera activé par un administrateur.');
+  if(params.get('error')==='oauth_denied')showMsg('err','Connexion OAuth annulée.');
+  if(params.get('error')==='oauth_failed')showMsg('err','Erreur OAuth. Veuillez réessayer.');
+  if(params.get('error')==='account_pending')showMsg('info','Votre compte est en attente d\'activation par un administrateur.');
+
+  // Check session
+  const sess=await fetch('api/auth/session').then(r=>r.json()).catch(()=>({}));
+  if(sess.authenticated)location.href='app.html';
+
+  // Auto-open register tab if flagged from home page
+  if(localStorage.getItem('openRegister')==='1' && settings.registrationEnabled){
+    switchPanel('register');
+    localStorage.removeItem('openRegister');
+  }
+}
+
+function switchPanel(p){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(p==='login'&&i===0)||(p==='register'&&i===1)));
+  $('panLogin').classList.toggle('active',p==='login');
+  $('panRegister').classList.toggle('active',p==='register');
+  $('msg').classList.remove('show');
+}
+
+function selectRole(r,el){selectedRole=r;document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');}
+
+async function doLogin(){
+  const u=$('username').value.trim(),p=$('password').value;
+  if(!u||!p){showMsg('err','Veuillez remplir tous les champs.');return;}
+  const btn=$('loginBtn');btn.disabled=true;btn.textContent='Connexion...';
+  try{
+    const r=await fetch('api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(d.success){location.href='app.html';}
+    else{showMsg('err',d.message||'Identifiants incorrects');btn.disabled=false;btn.textContent='Se connecter';}
+  }catch(e){showMsg('err','Erreur réseau');btn.disabled=false;btn.textContent='Se connecter';}
+}
+
+async function doRegister(){
+  const nom=$('rNom').value.trim(),prenom=$('rPrenom').value.trim(),email=$('rEmail').value.trim();
+  const username=$('rUsername').value.trim(),password=$('rPassword').value;
+  if(!nom||!prenom||!username||password.length<6){showMsg('err','Tous les champs sont requis (mot de passe min 6 car.)');return;}
+  try{
+    const r=await fetch('api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom,prenom,email,username,password,role:selectedRole})});
+    const d=await r.json();
+    if(d.success){showMsg('ok',d.message||'Inscription enregistrée. En attente d\'activation.');switchPanel('login');}
+    else showMsg('err',d.message||'Erreur');
+  }catch(e){showMsg('err','Erreur réseau');}
+}
+
+function oauthLogin(provider){location.href='api/auth/oauth/'+provider;}
+function oauthRegister(provider){location.href='api/auth/oauth/'+provider+'?role='+selectedRole;}
+
+function showMsg(type,txt){const m=$('msg');m.textContent=txt;m.className='msg show '+type;}
+
+document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter'){$('panLogin').classList.contains('active')?doLogin():doRegister();}}));
+init();
+</script>
+</body>
+</html>

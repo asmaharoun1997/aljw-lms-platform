@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4285f4;--primary-light:rgba(66,133,244,.08);--bg:#f1f5f9;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;--text:#1e293b;--text2:#64748b;--text3:#94a3b8;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--purple:#8b5cf6;--sidebar-w:240px;--radius:10px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+/* Sidebar */
+.sb{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;z-index:100;transition:.3s}
+.sb-h{padding:16px 18px;border-bottom:1px solid var(--border)}
+.sb-h h2{font-size:15px;font-weight:700;color:var(--primary)}
+.sb-h small{font-size:10px;color:var(--text3);display:block;margin-top:2px}
+.sb-nav{flex:1;padding:8px;overflow-y:auto}
+.sb-section{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding:14px 10px 4px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:.15s;text-decoration:none}
+.sb-item:hover{background:var(--primary-light);color:var(--primary)}
+.sb-item.active{background:var(--primary);color:#fff}
+.sb-item .icon{font-size:16px;width:20px;text-align:center}
+.sb-footer{padding:12px 18px;border-top:1px solid var(--border);font-size:11px}
+.sb-user{font-weight:600;color:var(--text)}
+.sb-role{font-size:10px;color:var(--text3);display:block;margin:2px 0 8px}
+.sb-logout{font-size:11px;color:var(--red);cursor:pointer;background:none;border:none;font-family:inherit;font-weight:500}
+.sb-logout:hover{text-decoration:underline}
+/* Main */
+.main{margin-left:var(--sidebar-w);flex:1;padding:24px;min-height:100vh}
+.page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+/* Cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat.blue::before{background:var(--primary)}.stat.green::before{background:var(--green)}.stat.red::before{background:var(--red)}.stat.purple::before{background:var(--purple)}.stat.yellow::before{background:var(--yellow)}
+.stat-num{font-size:26px;font-weight:800;display:block}
+.stat.blue .stat-num{color:var(--primary)}.stat.green .stat-num{color:var(--green)}.stat.red .stat-num{color:var(--red)}.stat.purple .stat-num{color:var(--purple)}.stat.yellow .stat-num{color:var(--yellow)}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+/* Table */
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.tbl-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.tbl-header h3{font-size:15px;font-weight:600}
+.tbl-actions{display:flex;gap:8px;flex-wrap:wrap}
+.search{border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;outline:none;width:200px;font-family:inherit}
+.search:focus{border-color:var(--primary)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer}
+th:hover{color:var(--primary)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:hover td{background:var(--primary-light)}
+/* Buttons */
+.btn{font-family:inherit;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;border:none;transition:.2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-success{background:var(--green);color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{font-size:11px;padding:5px 10px}
+/* Badge */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px}
+.badge-green{background:rgba(34,197,94,.1);color:var(--green)}
+.badge-red{background:rgba(239,68,68,.1);color:var(--red)}
+.badge-blue{background:rgba(66,133,244,.1);color:var(--primary)}
+.badge-yellow{background:rgba(234,179,8,.1);color:#b45309}
+.badge-purple{background:rgba(139,92,246,.1);color:var(--purple)}
+/* Form */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;max-width:600px}
+.form-card h3{font-size:15px;font-weight:600;margin-bottom:16px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;outline:none;transition:.2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--primary)}
+.fg textarea{resize:vertical;min-height:60px}
+/* Progress bar */
+.prog-bg{height:6px;background:var(--border);border-radius:3px;overflow:hidden}.prog-fg{height:100%;border-radius:3px}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border-radius:16px;max-width:560px;width:100%;max-height:80vh;overflow-y:auto;padding:28px;position:relative}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:16px}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);width:30px;height:30px;display:grid;place-items:center;border-radius:6px}
+.modal-close:hover{background:var(--bg);color:var(--text)}
+/* Alert */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none}
+.alert.show{display:block}
+.alert-success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--green)}
+.alert-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+/* Course card */
+.courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.course-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:.2s;cursor:pointer}
+.course-card:hover{border-color:var(--primary);box-shadow:0 4px 16px rgba(66,133,244,.1);transform:translateY(-2px)}
+.course-card h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.course-card .cc-meta{font-size:11px;color:var(--text3);margin-bottom:8px}
+.course-card .cc-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.course-card .cc-footer{display:flex;gap:6px;flex-wrap:wrap}
+/* Upload zone */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--primary);background:var(--primary-light)}
+.upload-zone .icon{font-size:36px;margin-bottom:8px}
+.upload-zone p{font-size:13px;color:var(--text2)}
+/* Responsive */
+@media(max-width:768px){.sb{transform:translateX(-100%)}.sb.open{transform:none}.main{margin-left:0}}
+.loading{text-align:center;padding:40px;color:var(--text3)}
+.empty{text-align:center;padding:32px;color:var(--text3)}.empty .icon{font-size:32px;margin-bottom:8px}
+.spin{display:inline-block;animation:spin 2s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<aside class="sb" id="sidebar">
+  <div class="sb-h"><h2 id="sbName">LMS Platform</h2><small id="sbSub">Plateforme de formation</small></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-footer" style="cursor:pointer" onclick="location.hash='#profile'">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="sbPhoto" style="width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;overflow:hidden;flex-shrink:0"></div>
+      <div>
+        <span class="sb-user" id="sbUser">—</span>
+        <span class="sb-role" id="sbRole">—</span>
+      </div>
+    </div>
+    <button class="sb-logout" onclick="event.stopPropagation();logout()">⏻ Déconnexion</button>
+  </div>
+</aside>
+<main class="main" id="content"><div class="loading">Chargement...</div></main>
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modalContent"></div></div>
+<script>
+let S={};// session
+const $=id=>document.getElementById(id);
+const API=(u,o)=>fetch('api'+u,o).then(r=>r.json());
+
+// ═══ Init ═══
+async function init(){
+  try{
+    S=await API('/auth/session');
+    if(!S.authenticated){location.href='login.html';return}
+    const settings=await API('/auth/settings');
+    $('sbName').textContent=settings.platformName||'LMS';
+    document.title=settings.platformName||'LMS Platform';
+    if(settings.primaryColor)document.documentElement.style.setProperty('--primary',settings.primaryColor);
+    $('sbUser').textContent=S.displayName;
+    $('sbRole').textContent={ADMIN:'Administrateur',FORMATEUR:'Formateur',ETUDIANT:'Étudiant',GED:'Gestionnaire documentaire'}[S.role]||S.role;
+    // Profile photo or initials
+    if(S.photoUrl){
+      $('sbPhoto').innerHTML=`<img src="${S.photoUrl}" style="width:100%;height:100%;object-fit:cover">`;
+    }else{
+      const initials=(S.displayName||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      $('sbPhoto').textContent=initials;
+    }
+    buildNav();
+    window.addEventListener('hashchange',route);
+    route();
+  }catch(e){location.href='login.html';}
+}
+
+function buildNav(){
+  const items=[];
+  items.push({icon:'📊',label:'Tableau de bord',hash:'#dashboard'});
+  items.push({icon:'🔍',label:'Recherche',hash:'#search'});
+  if(S.role==='ADMIN'){
+    items.push({section:'Administration'});
+    items.push({icon:'👥',label:'Utilisateurs',hash:'#users'});
+    items.push({icon:'🔔',label:'Inscriptions',hash:'#pending'});
+    items.push({icon:'📚',label:'Formations',hash:'#courses-admin'});
+    items.push({icon:'📄',label:'Documents (GED)',hash:'#docs-admin'});
+    items.push({icon:'🏆',label:'Résultats QCM',hash:'#admin-results'});
+    items.push({icon:'🧩',label:'Plugins',hash:'#plugins'});
+    items.push({icon:'📈',label:'Reporting',hash:'#reporting'});
+    items.push({icon:'⚙️',label:'Paramètres',hash:'#settings'});
+    items.push({icon:'🖥️',label:'Système',hash:'#system'});
+    items.push({icon:'📋',label:'Audit',hash:'#audit'});
+  }
+  if(S.role==='FORMATEUR'||S.role==='ADMIN'){
+    items.push({section:'Formateur'});
+    items.push({icon:'📦',label:'Mes formations',hash:'#my-courses'});
+    items.push({icon:'👥',label:'Groupes',hash:'#groups'});
+    items.push({icon:'🤖',label:'Créer un cours (IA)',hash:'#create-course'});
+    items.push({icon:'⬆️',label:'Déployer un contenu',hash:'#upload'});
+    items.push({icon:'📊',label:'Résultats',hash:'#results'});
+  }
+  if(S.role==='ETUDIANT'){
+    items.push({section:'Formation'});
+    items.push({icon:'📚',label:'Mes cours',hash:'#courses'});
+    items.push({icon:'🏆',label:'Mes résultats',hash:'#my-results'});
+  }
+  if(S.role==='GED'||S.role==='ETUDIANT'||S.role==='FORMATEUR'||S.role==='ADMIN'){
+    items.push({section:'Documents'});
+    items.push({icon:'📄',label:'Bibliothèque',hash:'#documents'});
+  }
+  items.push({section:'Système'});
+  items.push({icon:'👤',label:'Mon profil',hash:'#profile'});
+  items.push({icon:'🏠',label:'Page d\'accueil',hash:'#home-link'});
+  // Render nav (plugins loaded async below)
+  renderNav(items);
+  // Load active plugins into nav
+  loadPluginNav();
+}
+function renderNav(items){
+  $('sbNav').innerHTML=items.map(i=>i.section?`<div class="sb-section">${i.section}</div>`:`<a class="sb-item" href="${i.hash}" data-hash="${i.hash}"><span class="icon">${i.icon}</span>${i.label}</a>`).join('');
+}
+let _activePlugins=[];
+async function loadPluginNav(){
+  try{
+    _activePlugins=await API('/plugins/active');
+    if(!_activePlugins.length)return;
+    // Group by category
+    const cats={};_activePlugins.forEach(p=>{const c=p.category||'Modules';if(!cats[c])cats[c]=[];cats[c].push(p);});
+    let navHtml='';
+    for(const [cat,plugins] of Object.entries(cats)){
+      navHtml+=`<div class="sb-section">${cat}</div>`;
+      plugins.forEach(p=>{navHtml+=`<a class="sb-item" href="#plugin-${p.pluginId}" data-hash="#plugin-${p.pluginId}"><span class="icon">${p.icon||'🧩'}</span>${p.name}</a>`;});
+    }
+    // Insert before "Système" section
+    const sysSec=$('sbNav').querySelector('.sb-section:last-of-type');
+    if(sysSec&&sysSec.previousElementSibling){
+      // Find the Système section
+      const sections=$('sbNav').querySelectorAll('.sb-section');
+      for(const sec of sections){
+        if(sec.textContent==='Système'){sec.insertAdjacentHTML('beforebegin',navHtml);break;}
+      }
+    }else{$('sbNav').insertAdjacentHTML('beforeend',navHtml);}
+  }catch(e){console.warn('[Plugins] Nav load failed:',e);}
+}
+
+function route(){
+  const h=location.hash||'#dashboard';
+  if(h==='#home-link'){location.href='home.html';return;}
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.toggle('active',el.dataset.hash===h));
+
+  // Plugin routes: #plugin-{pluginId}
+  if(h.startsWith('#plugin-')){
+    const pluginId=h.substring(8);
+    vPluginEmbed(pluginId);return;
+  }
+  // Admin plugins
+  if(h==='#plugins'){vPluginsAdmin();return;}
+
+  const view={
+    '#dashboard':vDashboard,'#users':vUsers,'#pending':vPending,'#groups':vGroups,'#courses-admin':vCoursesAdmin,'#docs-admin':vDocsAdmin,'#admin-results':vAdminResults,
+    '#reporting':vReporting,'#settings':vSettings,'#system':vSystem,'#audit':vAudit,
+    '#my-courses':vMyCourses,'#upload':vUpload,'#create-course':vCreateCourse,'#results':vResults,
+    '#courses':vStudentCourses,'#my-results':vMyResults,
+    '#search':vSearch,'#documents':vDocuments,'#profile':vProfile
+  }[h];
+  if(view)view();else $('content').innerHTML='<div class="empty"><div class="icon">🔍</div><p>Page non trouvée</p></div>';
+}
+
+async function logout(){await API('/auth/logout',{method:'POST'});location.href='login.html';}
+function openModal(html){$('modalContent').innerHTML=html;$('modalBg').classList.add('show');}
+function closeModal(){$('modalBg').classList.remove('show');}
+
+// ═══ Dashboard ═══
+async function vDashboard(){
+  let html='<h1 class="page-title">Tableau de bord</h1><p class="page-sub">Bienvenue, '+S.displayName+'</p>';
+  if(S.role==='ADMIN'){
+    const d=await API('/admin/stats');
+    const ur=d.usersByRole||{};
+    html+=`<div class="stats">
+      <div class="stat blue"><span class="stat-num">${(ur.ETUDIANT||0)+(ur.FORMATEUR||0)+(ur.ADMIN||0)}</span><span class="stat-label">Utilisateurs</span></div>
+      <div class="stat green"><span class="stat-num">${d.publishedCourses||0}</span><span class="stat-label">Cours publiés</span></div>
+      <div class="stat purple"><span class="stat-num">${d.quizStats?.totalSessions||0}</span><span class="stat-label"><a href="#admin-results" style="color:inherit;text-decoration:underline">Sessions QCM</a></span></div>
+      <div class="stat yellow"><span class="stat-num">${d.quizStats?.avgScore||0}%</span><span class="stat-label">Score moyen</span></div>
+      ${d.pendingCount>0?`<div class="stat red"><span class="stat-num">${d.pendingCount}</span><span class="stat-label"><a href="#pending" style="color:inherit;text-decoration:underline">Inscriptions en attente</a></span></div>`:''}
+    </div>`;
+    if(d.courseStats?.length){
+      html+='<div class="tbl-card"><div class="tbl-header"><h3>Résultats par formation</h3></div><table><thead><tr><th>Formation</th><th>Étudiants</th><th>Tentatives</th><th>Score moy.</th><th>Réussite</th></tr></thead><tbody>';
+      d.courseStats.forEach(c=>{const pr=c.attempts>0?Math.round(c.passCount/c.attempts*100):0;
+        html+=`<tr><td style="font-weight:600">${c.courseTitle}</td><td>${c.uniqueStudents}</td><td>${c.attempts}</td><td>${c.avgScore}%</td><td><span class="badge ${pr>=70?'badge-green':'badge-red'}">${pr}%</span></td></tr>`;});
+      html+='</tbody></table></div>';
+    }
+  } else if(S.role==='ETUDIANT'){
+    const prog=await API('/student/progress');
+    if(prog.length){
+      html+='<div class="stats">';
+      const passed=prog.filter(p=>p.passed).length;
+      html+=`<div class="stat green"><span class="stat-num">${passed}/${prog.length}</span><span class="stat-label">Cours validés</span></div>`;
+      const avgBest=prog.length?Math.round(prog.reduce((s,p)=>s+p.bestScore,0)/prog.length):0;
+      html+=`<div class="stat blue"><span class="stat-num">${avgBest}%</span><span class="stat-label">Score moyen</span></div></div>`;
+      html+='<div class="tbl-card"><div class="tbl-header"><h3>Progression</h3></div><table><thead><tr><th>Formation</th><th>Meilleur score</th><th>Tentatives</th><th>Statut</th></tr></thead><tbody>';
+      prog.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.courseTitle}</td><td>${p.bestScore}%</td><td>${p.attempts}</td><td><span class="badge ${p.passed?'badge-green':'badge-red'}">${p.passed?'Validé':'En cours'}</span></td></tr>`;});
+      html+='</tbody></table></div>';
+    } else html+='<div class="empty"><div class="icon">📚</div><p>Aucune progression enregistrée</p></div>';
+  } else {
+    html+='<p>Accédez à vos formations via le menu latéral.</p>';
+  }
+  $('content').innerHTML=html;
+}
+
+// ═══ Pending Registrations (Admin) ═══
+async function vPending(){
+  const pending=await API('/admin/pending');
+  let html=`<h1 class="page-title">Inscriptions en attente</h1>
+    <p class="page-sub">${pending.length} compte(s) en attente d'activation</p>`;
+  if(pending.length){
+    html+=`<div class="tbl-card"><div class="tbl-header"><h3>Demandes d'inscription</h3>
+      <button class="btn btn-success btn-sm" onclick="approveAll()">✅ Tout activer</button></div>
+      <table><thead><tr><th>ID</th><th>Nom</th><th>Identifiant</th><th>Email</th><th>Rôle demandé</th><th>Date inscription</th><th>Actions</th></tr></thead><tbody>`;
+    pending.forEach(u=>{
+      const roleCls=u.role==='FORMATEUR'?'badge-blue':'badge-green';
+      const isOAuth=u.passwordHash&&u.passwordHash.startsWith('OAUTH:');
+      const provider=isOAuth?u.passwordHash.replace('OAUTH:',''):'';
+      html+=`<tr><td>${u.id}</td><td style="font-weight:600">${u.prenom} ${u.nom}</td>
+        <td>${u.username}${isOAuth?' <span class="badge badge-purple" style="font-size:8px">'+provider+'</span>':''}</td>
+        <td style="font-size:12px;color:var(--text3)">${u.email||'—'}</td>
+        <td><span class="badge ${roleCls}">${u.role}</span></td>
+        <td style="font-size:11px;color:var(--text3)">${u.createdAt?new Date(u.createdAt).toLocaleString('fr-FR'):'—'}</td>
+        <td>
+          <button class="btn btn-success btn-sm" onclick="approveOne(${u.id},'${u.prenom} ${u.nom}')">✅ Activer</button>
+          <button class="btn btn-danger btn-sm" onclick="rejectOne(${u.id},'${u.prenom} ${u.nom}')">❌ Refuser</button>
+        </td></tr>`;
+    });
+    html+='</tbody></table></div>';
+  }else{
+    html+='<div class="tbl-card" style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:8px">✅</div><p>Aucune inscription en attente.</p></div>';
+  }
+  $('content').innerHTML=html;
+}
+window.approveOne=async(id,name)=>{
+  const r=await API('/admin/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id})});
+  if(r.success)vPending(); else alert(r.message||'Erreur');
+};
+window.rejectOne=async(id,name)=>{
+  if(!confirm('Refuser et supprimer le compte de '+name+' ?'))return;
+  const r=await API('/admin/reject',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:id})});
+  if(r.success)vPending(); else alert(r.message||'Erreur');
+};
+window.approveAll=async()=>{
+  if(!confirm('Activer tous les comptes en attente ?'))return;
+  const pending=await API('/admin/pending');
+  for(const u of pending) await API('/admin/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:u.id})});
+  vPending();
+};
+
+// ═══ Users (Admin) ═══
+async function vUsers(){
+  const users=await API('/admin/users');
+  const groups=await API('/admin/groups');
+  let html=`<h1 class="page-title">Utilisateurs</h1><p class="page-sub">${users.length} utilisateurs enregistrés</p>
+    <div class="tbl-card"><div class="tbl-header"><h3>Liste des utilisateurs</h3><div class="tbl-actions">
+      <input class="search" placeholder="🔍 Rechercher..." oninput="filterUserTable(this.value)">
+      <button class="btn btn-primary" onclick="showCreateUser()">+ Créer</button>
+      <button class="btn btn-outline" onclick="showImportCsv()">📄 Import CSV</button>
+    </div></div><table><thead><tr><th>ID</th><th>Identifiant</th><th>Nom</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead><tbody id="usersTbody">`;
+  users.forEach(u=>{
+    html+=`<tr data-search="${u.nom} ${u.prenom} ${u.username}">
+      <td>${u.id}</td><td style="font-weight:600">${u.username}</td><td>${u.prenom} ${u.nom}</td>
+      <td><span class="badge badge-${u.role==='ADMIN'?'purple':u.role==='FORMATEUR'?'blue':u.role==='GED'?'yellow':'green'}">${u.role}</span></td>
+      <td><span class="badge ${u.active?'badge-green':'badge-red'}">${u.active?'Actif':'Inactif'}</span></td>
+      <td style="font-size:11px;color:var(--text3)">${u.lastLogin?new Date(u.lastLogin).toLocaleString('fr-FR'):'Jamais'}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="editUser(${u.id})">✏️</button> <button class="btn btn-sm" style="color:var(--red)" onclick="showUserGroups(${u.id},'${u.prenom} ${u.nom}')">👥</button> <button class="btn btn-sm" style="color:var(--red)" onclick="deleteUser(${u.id})">🗑️</button></td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  $('content').innerHTML=html;
+}
+window.filterUserTable=v=>{document.querySelectorAll('#usersTbody tr').forEach(r=>{r.style.display=r.dataset.search?.toLowerCase().includes(v.toLowerCase())?'':'none';});};
+
+window.showCreateUser=()=>{openModal(`<button class="modal-close" onclick="closeModal()">×</button><h3>Créer un utilisateur</h3>
+  <div class="fg"><label>Identifiant</label><input id="mUser"></div>
+  <div class="fg"><label>Nom</label><input id="mNom"></div>
+  <div class="fg"><label>Prénom</label><input id="mPrenom"></div>
+  <div class="fg"><label>Email</label><input id="mEmail" type="email"></div>
+  <div class="fg"><label>Rôle</label><select id="mRole"><option value="ETUDIANT">Étudiant</option><option value="FORMATEUR">Formateur</option><option value="GED">GED (documents)</option><option value="ADMIN">Admin</option></select></div>
+  <div class="fg"><label>Mot de passe (défaut=identifiant)</label><input id="mPwd" type="password" placeholder="Optionnel"></div>
+  <button class="btn btn-primary" onclick="doCreateUser()">Créer</button>`);};
+window.doCreateUser=async()=>{
+  const d={username:$('mUser').value,nom:$('mNom').value,prenom:$('mPrenom').value,email:$('mEmail').value,role:$('mRole').value,password:$('mPwd').value};
+  const r=await API('/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+  if(r.success||r.id){closeModal();vUsers();}else alert(r.message);
+};
+
+window.editUser=async id=>{
+  const u=(await API('/admin/users')).find(x=>x.id===id);if(!u)return;
+  openModal(`<button class="modal-close" onclick="closeModal()">×</button><h3>Modifier ${u.prenom} ${u.nom}</h3>
+    <div class="fg"><label>Identifiant</label><input id="eUser" value="${u.username}"></div>
+    <div class="fg"><label>Nom</label><input id="eNom" value="${u.nom}"></div>
+    <div class="fg"><label>Prénom</label><input id="ePrenom" value="${u.prenom}"></div>
+    <div class="fg"><label>Email</label><input id="eEmail" value="${u.email||''}"></div>
+    <div class="fg"><label>Rôle</label><select id="eRole">${['ETUDIANT','FORMATEUR','GED','ADMIN'].map(r=>`<option ${r===u.role?'selected':''}>${r}</option>`).join('')}</select></div>
+    <div class="fg"><label>Actif</label><select id="eActive"><option value="true" ${u.active?'selected':''}>Actif</option><option value="false" ${!u.active?'selected':''}>Inactif</option></select></div>
+    <div class="fg"><label>Nouveau mot de passe</label><input id="ePwd" type="password" placeholder="Laisser vide pour ne pas changer"></div>
+    <button class="btn btn-primary" onclick="doEditUser(${id})">Enregistrer</button>`);
+};
+window.doEditUser=async id=>{
+  const d={username:$('eUser').value,nom:$('eNom').value,prenom:$('ePrenom').value,email:$('eEmail').value,role:$('eRole').value,active:$('eActive').value==='true',password:$('ePwd').value};
+  await API('/admin/users/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+  closeModal();vUsers();
+};
+
+window.showUserGroups=async(uid,name)=>{
+  const allGroups=await API('/admin/groups');
+  const userGids=await API('/admin/user-groups/'+uid);
+  let h=`<button class="modal-close" onclick="closeModal()">×</button><h3>Groupes de ${name}</h3>`;
+  allGroups.forEach(g=>{const checked=userGids.includes(g.id)?'checked':'';
+    h+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0"><input type="checkbox" class="ugCheck" value="${g.id}" ${checked}> ${g.name}</label>`;});
+  h+=`<br><button class="btn btn-primary" onclick="saveUserGroups(${uid})">Enregistrer</button>`;
+  openModal(h);
+};
+window.saveUserGroups=async uid=>{
+  const gids=[...document.querySelectorAll('.ugCheck:checked')].map(c=>parseInt(c.value));
+  await API('/admin/user-groups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:uid,groupIds:gids})});
+  closeModal();
+};
+window.deleteUser=async id=>{if(!confirm('Supprimer cet utilisateur ?'))return;await API('/admin/users/'+id,{method:'DELETE'});vUsers();};
+
+window.showImportCsv=()=>{openModal(`<button class="modal-close" onclick="closeModal()">×</button><h3>Import CSV</h3>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Format : NOM;PRENOM;IDENTIFIANT;EMAIL;MOT_DE_PASSE<br>(séparateur ; ou ,)</p>
+  <div class="fg"><label>Rôle par défaut</label><select id="csvRole"><option value="ETUDIANT">Étudiant</option><option value="FORMATEUR">Formateur</option></select></div>
+  <div class="fg"><label>Contenu CSV</label><textarea id="csvData" rows="8" placeholder="NOM;PRENOM;IDENTIFIANT;EMAIL;MOT_DE_PASSE&#10;DUPONT;Jean;jdupont;jean@mail.fr;pass123"></textarea></div>
+  <button class="btn btn-primary" onclick="doImportCsv()">Importer</button>
+  <div id="csvResult" style="margin-top:10px"></div>`);};
+window.doImportCsv=async()=>{
+  const r=await API('/admin/users/import-csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv:$('csvData').value,role:$('csvRole').value})});
+  $('csvResult').innerHTML=r.success?`<span style="color:var(--green)">✅ ${r.imported} utilisateur(s) importé(s)</span>`:`<span style="color:var(--red)">❌ ${r.message}</span>`;
+  if(r.success)setTimeout(()=>{closeModal();vUsers();},1500);
+};
+
+// ═══ Groups (Admin + Formateur) ═══
+let _selectedGroupId = null;
+
+async function vGroups(){
+  const groups = await API('/groups/all');
+  let html = `<h1 class="page-title">Gestion des groupes</h1>
+    <p class="page-sub">${groups.length} groupes · Sélectionnez un groupe pour gérer ses membres et formations</p>
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start">
+      <div class="tbl-card" style="position:sticky;top:24px">
+        <div class="tbl-header"><h3>Groupes</h3><button class="btn btn-primary btn-sm" onclick="showCreateGroup()">+ Créer</button></div>
+        <div id="groupList" style="max-height:60vh;overflow-y:auto">`;
+  groups.forEach(g => {
+    const sel = g.id === _selectedGroupId ? 'background:var(--primary-light);border-left:3px solid var(--primary)' : 'border-left:3px solid transparent';
+    html += `<div onclick="selectGroup(${g.id})" style="padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:.15s;${sel}" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='${g.id===_selectedGroupId?'var(--primary-light)':''}'" >
+      <div style="font-weight:600;font-size:13px">${g.name}</div>
+      <div style="font-size:11px;color:var(--text3)">${g.description || 'Aucune description'}</div>
+    </div>`;
+  });
+  if (!groups.length) html += '<div class="empty" style="padding:24px"><div class="icon">📁</div><p>Aucun groupe</p></div>';
+  html += `</div></div>
+    <div id="groupDetail">
+      <div class="tbl-card" style="text-align:center;padding:48px;color:var(--text3)">
+        <div style="font-size:32px;margin-bottom:8px">👈</div>
+        <p>Sélectionnez un groupe pour voir ses membres et formations</p>
+      </div>
+    </div>
+    </div>`;
+  $('content').innerHTML = html;
+  if (_selectedGroupId) selectGroup(_selectedGroupId);
+}
+
+window.selectGroup = async (gid) => {
+  _selectedGroupId = gid;
+  // Highlight in list
+  document.querySelectorAll('#groupList > div').forEach(el => {
+    el.style.borderLeftColor = 'transparent'; el.style.background = '';
+  });
+  const items = document.querySelectorAll('#groupList > div');
+  // Re-highlight (based on position)
+  const groups = await API('/groups/all');
+  const idx = groups.findIndex(g => g.id === gid);
+  if (idx >= 0 && items[idx]) { items[idx].style.borderLeftColor = 'var(--primary)'; items[idx].style.background = 'var(--primary-light)'; }
+
+  const [members, courses, availUsers, availCourses] = await Promise.all([
+    API('/groups/' + gid + '/members'),
+    API('/groups/' + gid + '/courses'),
+    API('/groups/' + gid + '/available-users'),
+    API('/groups/' + gid + '/available-courses')
+  ]);
+
+  const grp = groups.find(g => g.id === gid);
+  let h = `<div class="tbl-card" style="margin-bottom:16px">
+    <div class="tbl-header">
+      <div><h3 style="margin-bottom:2px">${grp.name}</h3><span style="font-size:11px;color:var(--text3)">${grp.description||''}</span></div>
+      <div class="tbl-actions">
+        <button class="btn btn-outline btn-sm" onclick="editGroupInfo(${gid},'${grp.name.replace(/'/g,"\\'")}','${(grp.description||'').replace(/'/g,"\\'")}')">✏️ Modifier</button>
+        <button class="btn btn-sm" style="color:var(--red);border:1px solid var(--border);background:none;border-radius:8px" onclick="deleteGroup(${gid})">🗑️ Supprimer</button>
+      </div>
+    </div>
+  </div>`;
+
+  // ── Members panel ──
+  h += `<div class="tbl-card" style="margin-bottom:16px">
+    <div class="tbl-header"><h3>👥 Membres (${members.length})</h3>
+      <button class="btn btn-primary btn-sm" onclick="showAddMembers(${gid})">+ Ajouter des membres</button></div>`;
+  if (members.length) {
+    h += '<table><thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Actions</th></tr></thead><tbody>';
+    members.forEach(u => {
+      const roleCls = u.role==='ADMIN'?'badge-purple':u.role==='FORMATEUR'?'badge-blue':'badge-green';
+      h += `<tr><td style="font-weight:600">${u.prenom} ${u.nom}</td><td style="font-size:12px;color:var(--text3)">${u.username}</td>
+        <td><span class="badge ${roleCls}">${u.role}</span></td>
+        <td><button class="btn btn-sm" style="color:var(--red);background:none;border:none;cursor:pointer" onclick="removeMember(${gid},${u.id},'${u.prenom} ${u.nom}')">✕ Retirer</button></td></tr>`;
+    });
+    h += '</tbody></table>';
+  } else {
+    h += '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Aucun membre dans ce groupe</div>';
+  }
+  h += '</div>';
+
+  // ── Courses panel ──
+  h += `<div class="tbl-card">
+    <div class="tbl-header"><h3>📚 Formations (${courses.length})</h3>
+      <button class="btn btn-primary btn-sm" onclick="showAddCourses(${gid})">+ Ajouter des formations</button></div>`;
+  if (courses.length) {
+    h += '<table><thead><tr><th>Titre</th><th>Catégorie</th><th>Statut</th><th>QCM</th><th>Actions</th></tr></thead><tbody>';
+    courses.forEach(c => {
+      const sCls = {DRAFT:'badge-yellow',PUBLISHED:'badge-green',ARCHIVED:'badge-red'}[c.status];
+      h += `<tr><td style="font-weight:600">${c.title}</td><td style="font-size:12px;color:var(--text3)">${c.category||'—'}</td>
+        <td><span class="badge ${sCls}">${c.status}</span></td>
+        <td>${c.quizEnabled?'✅ '+c.questionsCount+'q':'—'}</td>
+        <td><button class="btn btn-sm" style="color:var(--red);background:none;border:none;cursor:pointer" onclick="removeCourse(${gid},${c.id},'${c.title.replace(/'/g,"\\'")}')">✕ Retirer</button></td></tr>`;
+    });
+    h += '</tbody></table>';
+  } else {
+    h += '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Aucune formation assignée à ce groupe</div>';
+  }
+  h += '</div>';
+
+  $('groupDetail').innerHTML = h;
+};
+
+// ── Add members modal (multi-select from available users) ──
+window.showAddMembers = async (gid) => {
+  const avail = await API('/groups/' + gid + '/available-users');
+  if (!avail.length) { openModal('<button class="modal-close" onclick="closeModal()">×</button><h3>Ajouter des membres</h3><p style="color:var(--text3);padding:12px 0">Tous les utilisateurs sont déjà dans ce groupe.</p>'); return; }
+  let h = '<button class="modal-close" onclick="closeModal()">×</button><h3>Ajouter des membres</h3>';
+  h += '<div class="fg"><label>Rechercher</label><input id="memberSearch" placeholder="Filtrer par nom..." oninput="filterCheckboxes(\'memberSearch\',\'memberList\')"></div>';
+  h += '<div id="memberList" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px">';
+  avail.forEach(u => {
+    const roleCls = u.role==='ADMIN'?'badge-purple':u.role==='FORMATEUR'?'badge-blue':'badge-green';
+    h += `<label data-name="${u.nom} ${u.prenom} ${u.username}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:.1s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
+      <input type="checkbox" class="addMemberCb" value="${u.id}">
+      <div><span style="font-weight:600;font-size:13px">${u.prenom} ${u.nom}</span> <span class="badge ${roleCls}" style="margin-left:4px">${u.role}</span><br><span style="font-size:11px;color:var(--text3)">${u.username}</span></div>
+    </label>`;
+  });
+  h += '</div><div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">';
+  h += `<button class="btn btn-outline" onclick="toggleAll('.addMemberCb',true)">Tout cocher</button>`;
+  h += `<button class="btn btn-outline" onclick="toggleAll('.addMemberCb',false)">Tout décocher</button>`;
+  h += `<button class="btn btn-primary" onclick="doAddMembers(${gid})">Ajouter la sélection</button></div>`;
+  openModal(h);
+};
+
+window.doAddMembers = async (gid) => {
+  const newIds = [...document.querySelectorAll('.addMemberCb:checked')].map(c => parseInt(c.value));
+  if (!newIds.length) { closeModal(); return; }
+  // Get existing + merge
+  const existing = await API('/groups/' + gid + '/members');
+  const allIds = [...new Set([...existing.map(u => u.id), ...newIds])];
+  await API('/groups/' + gid + '/members', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userIds:allIds})});
+  closeModal(); selectGroup(gid);
+};
+
+window.removeMember = async (gid, uid, name) => {
+  if (!confirm('Retirer ' + name + ' du groupe ?')) return;
+  const existing = await API('/groups/' + gid + '/members');
+  const remaining = existing.filter(u => u.id !== uid).map(u => u.id);
+  await API('/groups/' + gid + '/members', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userIds:remaining})});
+  selectGroup(gid);
+};
+
+// ── Add courses modal ──
+window.showAddCourses = async (gid) => {
+  const avail = await API('/groups/' + gid + '/available-courses');
+  if (!avail.length) { openModal('<button class="modal-close" onclick="closeModal()">×</button><h3>Ajouter des formations</h3><p style="color:var(--text3);padding:12px 0">Toutes les formations sont déjà assignées à ce groupe.</p>'); return; }
+  let h = '<button class="modal-close" onclick="closeModal()">×</button><h3>Ajouter des formations</h3>';
+  h += '<div id="courseAddList" style="max-height:350px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px">';
+  avail.forEach(c => {
+    const sCls = {DRAFT:'badge-yellow',PUBLISHED:'badge-green',ARCHIVED:'badge-red'}[c.status];
+    h += `<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:.1s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
+      <input type="checkbox" class="addCourseCb" value="${c.id}">
+      <div><span style="font-weight:600;font-size:13px">${c.title}</span> <span class="badge ${sCls}" style="margin-left:4px">${c.status}</span>
+      <br><span style="font-size:11px;color:var(--text3)">${c.category||''} · v${c.version}${c.quizEnabled?' · QCM '+c.questionsCount+'q':''}</span></div>
+    </label>`;
+  });
+  h += '</div><div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">';
+  h += `<button class="btn btn-outline" onclick="toggleAll('.addCourseCb',true)">Tout cocher</button>`;
+  h += `<button class="btn btn-primary" onclick="doAddCourses(${gid})">Ajouter la sélection</button></div>`;
+  openModal(h);
+};
+
+window.doAddCourses = async (gid) => {
+  const newIds = [...document.querySelectorAll('.addCourseCb:checked')].map(c => parseInt(c.value));
+  if (!newIds.length) { closeModal(); return; }
+  const existing = await API('/groups/' + gid + '/courses');
+  const allIds = [...new Set([...existing.map(c => c.id), ...newIds])];
+  await API('/groups/' + gid + '/courses', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({courseIds:allIds})});
+  closeModal(); selectGroup(gid);
+};
+
+window.removeCourse = async (gid, cid, title) => {
+  if (!confirm('Retirer "' + title + '" du groupe ?')) return;
+  const existing = await API('/groups/' + gid + '/courses');
+  const remaining = existing.filter(c => c.id !== cid).map(c => c.id);
+  await API('/groups/' + gid + '/courses', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({courseIds:remaining})});
+  selectGroup(gid);
+};
+
+// ── Helpers ──
+window.toggleAll = (sel, checked) => { document.querySelectorAll(sel).forEach(c => c.checked = checked); };
+window.filterCheckboxes = (inputId, listId) => {
+  const q = $(inputId).value.toLowerCase();
+  document.querySelectorAll('#' + listId + ' label').forEach(l => {
+    l.style.display = l.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+  });
+};
+
+window.showCreateGroup = () => { openModal(`<button class="modal-close" onclick="closeModal()">×</button><h3>Créer un groupe</h3>
+  <div class="fg"><label>Nom</label><input id="gName" placeholder="Ex: M34 - DevOps Senior"></div>
+  <div class="fg"><label>Description</label><textarea id="gDesc" placeholder="Description du groupe..."></textarea></div>
+  <button class="btn btn-primary" onclick="doCreateGroup()">Créer le groupe</button>`);
+};
+window.doCreateGroup = async () => {
+  const name = $('gName').value.trim();
+  if (!name) { alert('Le nom est obligatoire'); return; }
+  const r = await API('/groups/create', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, description:$('gDesc').value})});
+  if (r.id) { _selectedGroupId = r.id; closeModal(); vGroups(); }
+  else alert(r.message || 'Erreur');
+};
+window.editGroupInfo = (id, n, d) => { openModal(`<button class="modal-close" onclick="closeModal()">×</button><h3>Modifier le groupe</h3>
+  <div class="fg"><label>Nom</label><input id="egName" value="${n}"></div>
+  <div class="fg"><label>Description</label><textarea id="egDesc">${d}</textarea></div>
+  <button class="btn btn-primary" onclick="doEditGroupInfo(${id})">Enregistrer</button>`);
+};
+window.doEditGroupInfo = async (id) => {
+  await API('/groups/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:$('egName').value, description:$('egDesc').value})});
+  closeModal(); vGroups();
+};
+window.deleteGroup = async (id) => {
+  if (!confirm('Supprimer ce groupe et toutes ses associations ?')) return;
+  await API('/groups/' + id, {method:'DELETE'});
+  _selectedGroupId = null; vGroups();
+};
+
+// ═══ Courses Admin ═══
+async function vCoursesAdmin(){
+  const courses=await API('/admin/courses');
+  const groups=await API('/admin/groups');
+  let html=`<h1 class="page-title">Formations</h1><p class="page-sub">${courses.length} formations déployées</p>
+    <div class="tbl-card"><div class="tbl-header"><h3>Toutes les formations</h3></div><table><thead><tr><th>ID</th><th>Titre</th><th>Auteur</th><th>Version</th><th>QCM</th><th>Statut</th><th>Groupes</th><th>Actions</th></tr></thead><tbody>`;
+  for(const c of courses){
+    const gids=await API('/admin/course-groups/'+c.id);
+    const gnames=gids.map(gid=>{const g=groups.find(x=>x.id===gid);return g?g.name:'?';}).join(', ')||'Aucun';
+    const statusCls={DRAFT:'badge-yellow',PUBLISHED:'badge-green',ARCHIVED:'badge-red'}[c.status];
+    html+=`<tr><td>${c.id}</td><td style="font-weight:600">${c.title}</td><td>${c.authorName||'—'}</td><td>${c.version}</td>
+      <td>${c.quizEnabled?'✅ '+c.questionsCount+'q':'—'}</td>
+      <td><span class="badge ${statusCls}">${c.status}</span></td><td style="font-size:11px">${gnames}</td>
+      <td><select onchange="changeCourseStatus(${c.id},this.value)" style="font-size:11px;padding:3px">
+        ${['DRAFT','PUBLISHED','ARCHIVED'].map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('')}
+      </select> <button class="btn btn-outline btn-sm" onclick="showCourseGroups(${c.id},'${c.title.replace(/'/g,"\\'")}')">👥</button>
+      <button class="btn btn-sm" style="color:var(--red)" onclick="deleteCourse(${c.id})">🗑️</button></td></tr>`;
+  }
+  html+='</tbody></table></div>';
+  $('content').innerHTML=html;
+}
+window.changeCourseStatus=async(id,s)=>{await API('/admin/courses/'+id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:s})});};
+window.showCourseGroups=async(cid,title)=>{
+  const allGroups=await API('/admin/groups');const cgids=await API('/admin/course-groups/'+cid);
+  let h=`<button class="modal-close" onclick="closeModal()">×</button><h3>Groupes — ${title}</h3>`;
+  allGroups.forEach(g=>{h+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0"><input type="checkbox" class="cgCheck" value="${g.id}" ${cgids.includes(g.id)?'checked':''}> ${g.name}</label>`;});
+  h+=`<br><button class="btn btn-primary" onclick="saveCourseGroups(${cid})">Enregistrer</button>`;openModal(h);
+};
+window.saveCourseGroups=async cid=>{const gids=[...document.querySelectorAll('.cgCheck:checked')].map(c=>parseInt(c.value));
+  await API('/admin/course-groups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({courseId:cid,groupIds:gids})});closeModal();};
+window.deleteCourse=async id=>{if(confirm('Supprimer cette formation et tous ses résultats ?')){await API('/admin/courses/'+id,{method:'DELETE'});vCoursesAdmin();}};
+
+// ═══ Documents Admin (GED) ═══
+async function vDocsAdmin(){
+  const docs=await API('/admin/documents');
+  const groups=await API('/admin/groups');
+  let html=`<h1 class="page-title">📄 Documents (GED)</h1><p class="page-sub">${docs.length} documents déployés</p>
+    <div class="tbl-card"><div class="tbl-header"><h3>Tous les documents</h3></div><table><thead><tr><th>ID</th><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Version</th><th>Statut</th><th>Groupes</th><th>Actions</th></tr></thead><tbody>`;
+  for(const c of docs){
+    const gids=await API('/admin/course-groups/'+c.id);
+    const gnames=gids.map(gid=>{const g=groups.find(x=>x.id===gid);return g?g.name:'?';}).join(', ')||'Aucun';
+    const statusCls={DRAFT:'badge-yellow',PUBLISHED:'badge-green',ARCHIVED:'badge-red'}[c.status];
+    html+=`<tr><td>${c.id}</td><td style="font-weight:600">📄 ${c.title}</td><td>${c.category||'—'}</td><td>${c.authorName||'—'}</td><td>${c.version}</td>
+      <td><span class="badge ${statusCls}">${c.status}</span></td><td style="font-size:11px">${gnames}</td>
+      <td><select onchange="changeCourseStatus(${c.id},this.value)" style="font-size:11px;padding:3px">
+        ${['DRAFT','PUBLISHED','ARCHIVED'].map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('')}
+      </select> <button class="btn btn-outline btn-sm" onclick="showCourseGroups(${c.id},'${c.title.replace(/'/g,"\\'")}')">👥</button>
+      <button class="btn btn-sm" style="color:var(--red)" onclick="deleteDoc(${c.id})">🗑️</button></td></tr>`;
+  }
+  if(!docs.length)html+='<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3)">Aucun document. Déployez un bundle avec le type "Document".</td></tr>';
+  html+='</tbody></table></div>';
+  $('content').innerHTML=html;
+}
+window.deleteDoc=async id=>{if(confirm('Supprimer ce document ?')){await API('/admin/courses/'+id,{method:'DELETE'});vDocsAdmin();}};
+
+// ═══ Admin Results (QCM) ═══
+async function vAdminResults(){
+  const results=await API('/admin/results');
+  const global=await API('/reporting/global');
+  const byCourse=await API('/reporting/by-course');
+
+  let html=`<h1 class="page-title">🏆 Résultats QCM</h1>
+    <p class="page-sub">${results.length} soumission(s) enregistrée(s)</p>`;
+
+  // Stats cards
+  html+=`<div class="stats">
+    <div class="stat blue"><span class="stat-num">${global.totalSessions||0}</span><span class="stat-label">Sessions totales</span></div>
+    <div class="stat green"><span class="stat-num">${global.avgScore||0}%</span><span class="stat-label">Score moyen</span></div>
+    <div class="stat purple"><span class="stat-num">${global.bestScore||0}%</span><span class="stat-label">Meilleur score</span></div>
+    <div class="stat yellow"><span class="stat-num">${global.passCount||0}</span><span class="stat-label">Réussites</span></div>
+    <div class="stat red"><span class="stat-num">${global.failCount||0}</span><span class="stat-label">Échecs</span></div>
+  </div>`;
+
+  // Per-course summary
+  if(byCourse.length){
+    html+='<div class="tbl-card"><div class="tbl-header"><h3>📊 Statistiques par formation</h3></div><table><thead><tr><th>Formation</th><th>Étudiants</th><th>Tentatives</th><th>Score moy.</th><th>Taux réussite</th></tr></thead><tbody>';
+    byCourse.forEach(c=>{
+      const pr=c.attempts>0?Math.round(c.passCount/c.attempts*100):0;
+      html+=`<tr><td style="font-weight:600">${c.courseTitle}</td><td>${c.uniqueStudents}</td><td>${c.attempts}</td><td>${c.avgScore}%</td>
+        <td><div class="prog-bg" style="width:80px;display:inline-block"><div class="prog-fg" style="width:${pr}%;background:${pr>=70?'var(--green)':'var(--red)'}"></div></div> <strong>${pr}%</strong> (${c.passCount}/${c.attempts})</td></tr>`;
+    });
+    html+='</tbody></table></div>';
+  }
+
+  // Detailed results table
+  html+=`<div class="tbl-card"><div class="tbl-header"><h3>📋 Toutes les soumissions</h3>
+    <input class="search" id="adminResSearch" placeholder="🔍 Rechercher..." oninput="filterAdminRes()">
+  </div>`;
+
+  if(results.length){
+    html+='<table><thead><tr><th>ID</th><th>Étudiant</th><th>Formation</th><th>Score</th><th>Bonnes/Total</th><th>Tentative</th><th>Durée</th><th>Date</th><th>Actions</th></tr></thead><tbody id="adminResTbody">';
+    results.forEach(r=>{
+      const dur=r.durationSeconds>0?Math.floor(r.durationSeconds/60)+':'+String(r.durationSeconds%60).padStart(2,'0'):'—';
+      const passed=r.score>=70;
+      html+=`<tr data-search="${(r.userName||'').toLowerCase()} ${(r.courseTitle||'').toLowerCase()}">
+        <td>${r.id}</td>
+        <td style="font-weight:600">${r.userName||'ID:'+r.userId}</td>
+        <td>${r.courseTitle||'Course #'+r.courseId}</td>
+        <td><span class="badge ${passed?'badge-green':'badge-red'}">${r.score}%</span></td>
+        <td>${r.correctAnswers}/${r.totalQuestions}</td>
+        <td>#${r.attemptNumber}</td>
+        <td style="font-size:11px">${dur}</td>
+        <td style="font-size:10px;color:var(--text3)">${r.submittedAt?new Date(r.submittedAt).toLocaleString('fr-FR'):'—'}</td>
+        <td><button class="btn btn-sm" style="color:var(--red);font-size:10px" onclick="deleteAdminRes(${r.id})">🗑️</button></td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+  }else{
+    html+='<div class="empty"><div class="icon">📭</div><p>Aucun résultat QCM enregistré.<br>Les résultats apparaîtront ici après que les étudiants passent les QCMs.</p></div>';
+  }
+  html+='</div>';
+
+  $('content').innerHTML=html;
+}
+window.filterAdminRes=()=>{const q=$('adminResSearch').value.toLowerCase();document.querySelectorAll('#adminResTbody tr').forEach(r=>{r.style.display=r.dataset.search.includes(q)?'':'none';});};
+window.deleteAdminRes=async(id)=>{if(confirm('Supprimer ce résultat ?')){await API('/admin/results/'+id,{method:'DELETE'});vAdminResults();}};
+
+// ═══ Reporting (Admin/Formateur) ═══
+async function vReporting(){
+  const global=await API('/reporting/global');const byCourse=await API('/reporting/by-course');
+  let html=`<h1 class="page-title">Reporting</h1><p class="page-sub">Analyse des résultats QCM</p>
+    <div class="stats">
+      <div class="stat blue"><span class="stat-num">${global.totalSessions||0}</span><span class="stat-label">Sessions totales</span></div>
+      <div class="stat green"><span class="stat-num">${global.avgScore||0}%</span><span class="stat-label">Score moyen</span></div>
+      <div class="stat purple"><span class="stat-num">${global.bestScore||0}%</span><span class="stat-label">Meilleur score</span></div>
+      <div class="stat red"><span class="stat-num">${global.failCount||0}</span><span class="stat-label">Échecs</span></div>
+    </div>`;
+  if(byCourse.length){
+    html+='<div class="tbl-card"><div class="tbl-header"><h3>Détail par formation</h3></div><table><thead><tr><th>Formation</th><th>Étudiants</th><th>Tentatives</th><th>Score moy.</th><th>Réussite</th></tr></thead><tbody>';
+    byCourse.forEach(c=>{const pr=c.attempts>0?Math.round(c.passCount/c.attempts*100):0;
+      html+=`<tr><td style="font-weight:600;cursor:pointer;color:var(--primary)" onclick="location.hash='#results';setTimeout(()=>filterResultsByCourse(${c.courseId}),100)">${c.courseTitle}</td><td>${c.uniqueStudents}</td><td>${c.attempts}</td><td>${c.avgScore}%</td>
+        <td><div class="prog-bg" style="width:80px;display:inline-block"><div class="prog-fg" style="width:${pr}%;background:${pr>=70?'var(--green)':'var(--red)'}"></div></div> ${pr}%</td></tr>`;});
+    html+='</tbody></table></div>';
+  }
+  $('content').innerHTML=html;
+}
+
+// ═══ Settings (Admin) ═══
+async function vSettings(){
+  const s=await API('/admin/settings');
+  let html=`<h1 class="page-title">Paramètres</h1><p class="page-sub">Configuration de la plateforme, page d'accueil et sauvegarde</p>
+    <div class="form-card"><h3>🏢 Identité de l'entreprise</h3>
+      <div class="fg"><label>Nom de la plateforme</label><input id="sPlatName" value="${s.platform_name||''}"></div>
+      <div class="fg"><label>Couleur principale (hex)</label><input id="sPrimCol" type="color" value="${s.primary_color||'#4285f4'}" style="height:38px"></div>
+      <div class="fg"><label>URL du logo</label><input id="sLogo" value="${s.logo_url||''}" placeholder="https://..."></div>
+    </div>
+    <div class="form-card"><h3>📄 Page d'accueil publique</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Ces informations sont affichées sur la page d'accueil accessible sans connexion.</p>
+      <div class="fg"><label>Description de l'entreprise</label><textarea id="sDesc" rows="3">${(s.company_description||'').replace(/"/g,'&quot;')}</textarea></div>
+      <div class="fg"><label>Mission / Valeurs</label><textarea id="sMission" rows="3">${(s.company_mission||'').replace(/"/g,'&quot;')}</textarea></div>
+      <div class="fg"><label>Contact (email ou texte libre)</label><input id="sContact" value="${s.company_contact||''}" placeholder="contact@entreprise.com"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Enregistrer tous les paramètres</button>
+    <div id="settingsAlert" class="alert alert-success" style="margin-top:10px">✅ Paramètres enregistrés</div>
+
+    <div class="form-card" style="margin-top:24px;max-width:700px">
+      <h3>🤖 Agent IA (Anthropic Claude)</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px">
+        Configure l'agent IA pour la génération de cours. La clé API est stockée côté serveur et n'est jamais exposée au navigateur.
+      </p>
+      <div class="fg"><label>Clé API Anthropic</label><input id="sAiKey" type="password" value="${s.ai_api_key||''}" placeholder="sk-ant-api03-..."></div>
+      <div class="fg"><label>Modèle</label><input id="sAiModel" value="${s.ai_model||'claude-sonnet-4-20250514'}" placeholder="claude-sonnet-4-20250514"></div>
+      <div class="fg"><label>System Prompt (instructions pour l'IA)</label><textarea id="sAiPrompt" rows="8" style="font-size:11px;font-family:monospace">${(s.ai_system_prompt||'').replace(/"/g,'&quot;')}</textarea></div>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Laissez le prompt vide pour utiliser le prompt par défaut optimisé pour la génération de cours HTML.</p>
+      <button class="btn btn-primary" onclick="saveAiSettings()">Enregistrer la config IA</button>
+      <button class="btn btn-outline btn-sm" onclick="debugAiSettings()" style="margin-left:8px">🔍 Diagnostic</button>
+      <div id="aiSettingsAlert" class="alert alert-success" style="margin-top:10px">✅ Configuration IA enregistrée</div>
+      <pre id="aiDebugOutput" style="display:none;margin-top:10px;font-size:10px;background:var(--bg3);padding:12px;border-radius:8px;max-height:300px;overflow:auto;color:var(--text2)"></pre>
+    </div>
+
+    <div class="form-card" style="margin-top:24px;max-width:700px">
+      <h3>💾 Sauvegarde & Restauration</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:16px">
+        Exportez l'intégralité du site (utilisateurs, groupes, formations, résultats, paramètres) en XML.
+        La restauration est tolérante aux écarts de schéma : les colonnes ajoutées ou supprimées entre versions sont gérées automatiquement.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- EXPORT -->
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:20px;text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">📥</div>
+          <h4 style="font-size:14px;margin-bottom:4px">Exporter</h4>
+          <p style="font-size:11px;color:var(--text3);margin-bottom:14px">Télécharger un backup complet au format XML</p>
+          <button class="btn btn-primary" onclick="doBackupExport()" id="exportBtn">📥 Télécharger le backup</button>
+        </div>
+
+        <!-- IMPORT -->
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:20px;text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">📤</div>
+          <h4 style="font-size:14px;margin-bottom:4px">Restaurer</h4>
+          <p style="font-size:11px;color:var(--text3);margin-bottom:14px">Charger un fichier XML de backup</p>
+          <input type="file" id="restoreFile" accept=".xml" style="display:none" onchange="doBackupRestore(this.files[0])">
+          <button class="btn btn-outline" onclick="$('restoreFile').click()" id="restoreBtn" style="border-color:var(--red);color:var(--red)">📤 Restaurer depuis un fichier</button>
+        </div>
+      </div>
+
+      <div id="backupResult" style="margin-top:16px"></div>
+    </div>`;
+  $('content').innerHTML=html;
+}
+window.saveSettings=async()=>{
+  await API('/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    platform_name:$('sPlatName').value,primary_color:$('sPrimCol').value,logo_url:$('sLogo').value,
+    company_description:$('sDesc').value,company_mission:$('sMission').value,company_contact:$('sContact').value
+  })});
+  $('settingsAlert').classList.add('show');setTimeout(()=>$('settingsAlert').classList.remove('show'),2000);
+  document.documentElement.style.setProperty('--primary',$('sPrimCol').value);
+  $('sbName').textContent=$('sPlatName').value;document.title=$('sPlatName').value;
+};
+window.saveAiSettings=async()=>{
+  try{
+    const payload={ai_api_key:$('sAiKey').value||'',ai_model:$('sAiModel').value||'',ai_system_prompt:$('sAiPrompt').value||''};
+    console.log('[AI Settings] Saving:',{key_len:payload.ai_api_key.length,model:payload.ai_model,prompt_len:payload.ai_system_prompt.length});
+    const r=await API('/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(r.success){$('aiSettingsAlert').textContent='✅ Configuration IA enregistrée';$('aiSettingsAlert').className='alert alert-success show';}
+    else{$('aiSettingsAlert').textContent='❌ '+(r.message||'Erreur');$('aiSettingsAlert').className='alert alert-error show';}
+  }catch(e){$('aiSettingsAlert').textContent='❌ '+e.message;$('aiSettingsAlert').className='alert alert-error show';}
+  setTimeout(()=>$('aiSettingsAlert').classList.remove('show'),3000);
+};
+window.debugAiSettings=async()=>{
+  const el=$('aiDebugOutput');
+  el.style.display='block';el.textContent='Chargement...';
+  try{
+    const d=await API('/admin/settings/debug');
+    el.textContent=JSON.stringify(d,null,2);
+  }catch(e){el.textContent='Erreur: '+e.message;}
+};
+
+// ── Backup Export ──
+window.doBackupExport=()=>{
+  $('exportBtn').disabled=true;$('exportBtn').textContent='⏳ Export en cours...';
+  const a=document.createElement('a');a.href='api/admin/backup/export';a.download='';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>{$('exportBtn').disabled=false;$('exportBtn').textContent='📥 Télécharger le backup';},2000);
+};
+
+// ── Backup Restore ──
+window.doBackupRestore=async(file)=>{
+  if(!file||!file.name.endsWith('.xml')){$('backupResult').innerHTML='<div class="alert alert-error show">❌ Sélectionnez un fichier XML</div>';return;}
+  if(!confirm('⚠️ ATTENTION : La restauration va REMPLACER toutes les données actuelles (utilisateurs, résultats, paramètres) par celles du backup.\\n\\nCette opération est irréversible.\\n\\nContinuer ?'))return;
+  $('restoreBtn').disabled=true;$('restoreBtn').textContent='⏳ Restauration...';
+  $('backupResult').innerHTML='<div class="alert alert-success show">⏳ Restauration en cours, veuillez patienter...</div>';
+
+  try{
+    const fd=new FormData();fd.append('file',file);
+    const r=await fetch('api/admin/backup/restore',{method:'POST',body:fd}).then(r=>r.json());
+
+    let html='';
+    if(r.success){
+      html+=`<div class="alert alert-success show" style="margin-bottom:12px">
+        ✅ <strong>Restauration réussie</strong> — ${r.totalRows} lignes restaurées
+        <br><span style="font-size:11px">Schema backup : ${r.schemaVersion} · Exporté le : ${r.exportedAt}</span>
+        ${r.autoBackup?'<br><span style="font-size:11px">🛡️ Sauvegarde automatique pré-restore : <code>'+r.autoBackup+'</code></span>':''}
+      </div>`;
+    }else{
+      html+=`<div class="alert alert-error show" style="margin-bottom:12px">❌ ${r.error||'Erreur de restauration'}</div>`;
+    }
+
+    // Table details
+    if(r.tables){
+      html+='<div class="tbl-card" style="margin-bottom:12px"><div class="tbl-header"><h3>Détail par table</h3></div><table><thead><tr><th>Table</th><th>Restaurées</th><th>Ignorées</th><th>Statut</th></tr></thead><tbody>';
+      for(const[table,data] of Object.entries(r.tables)){
+        const ok=data.skipped===0;
+        html+=`<tr><td style="font-weight:600">${table}</td><td style="color:var(--green)">${data.restored}</td><td style="color:${data.skipped>0?'var(--red)':'var(--text3)'}">${data.skipped}</td><td><span class="badge ${ok?'badge-green':'badge-yellow'}">${ok?'OK':'Partiel'}</span></td></tr>`;
+      }
+      html+='</tbody></table></div>';
+    }
+
+    // Warnings
+    if(r.warnings?.length){
+      html+='<details style="margin-top:8px"><summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--yellow)">⚠️ '+r.warnings.length+' avertissement(s)</summary><ul style="font-size:11px;color:var(--text2);margin:8px 0 0 16px;line-height:1.8">';
+      r.warnings.forEach(w=>{html+='<li>'+w+'</li>';});
+      html+='</ul></details>';
+    }
+
+    $('backupResult').innerHTML=html;
+  }catch(e){
+    $('backupResult').innerHTML=`<div class="alert alert-error show">❌ Erreur: ${e.message}</div>`;
+  }
+  $('restoreBtn').disabled=false;$('restoreBtn').textContent='📤 Restaurer depuis un fichier';
+};
+
+// ═══ System (Admin) ═══
+async function vSystem(){
+  const s=await API('/admin/system');
+  let html=`<h1 class="page-title">Dashboard technique</h1><p class="page-sub">Ressources système en temps réel</p>
+    <div class="stats">
+      <div class="stat blue"><span class="stat-num">${s.heapUsedMB}/${s.heapMaxMB} MB</span><span class="stat-label">Java Heap (${s.heapPct}%)</span></div>
+      <div class="stat ${s.systemLoadAvg>2?'red':'green'}"><span class="stat-num">${s.systemLoadAvg}</span><span class="stat-label">CPU Load Avg (${s.availableProcessors} cores)</span></div>
+      <div class="stat ${s.diskUsedPct>85?'red':'purple'}"><span class="stat-num">${s.diskFreeGB} GB libre</span><span class="stat-label">Disque (${s.diskUsedPct}% utilisé / ${s.diskTotalGB} GB)</span></div>
+      <div class="stat yellow"><span class="stat-num">${s.threadCount}</span><span class="stat-label">Threads (peak: ${s.peakThreadCount})</span></div>
+    </div>
+    <div class="stats">
+      <div class="stat blue"><span class="stat-num">${Math.floor(s.uptime/3600)}h${Math.floor((s.uptime%3600)/60)}m</span><span class="stat-label">Uptime JVM</span></div>
+      <div class="stat green"><span class="stat-num">Java ${s.javaVersion}</span><span class="stat-label">Version</span></div>
+    </div>`;
+  // Heap bar
+  html+=`<div class="form-card"><h3>Java Heap</h3><div class="prog-bg" style="height:20px;border-radius:10px"><div class="prog-fg" style="width:${s.heapPct}%;background:${s.heapPct>80?'var(--red)':'var(--primary)'}"></div></div><p style="font-size:12px;color:var(--text3);margin-top:6px">${s.heapUsedMB} MB / ${s.heapMaxMB} MB (${s.heapPct}%)</p></div>`;
+  // Disk bar
+  html+=`<div class="form-card"><h3>Espace disque</h3><div class="prog-bg" style="height:20px;border-radius:10px"><div class="prog-fg" style="width:${s.diskUsedPct}%;background:${s.diskUsedPct>85?'var(--red)':'var(--green)'}"></div></div><p style="font-size:12px;color:var(--text3);margin-top:6px">${(s.diskTotalGB-s.diskFreeGB).toFixed(1)} GB utilisés / ${s.diskTotalGB} GB total</p></div>`;
+  // Network
+  if(s.network?.length){
+    html+='<div class="form-card"><h3>Réseau</h3>';
+    s.network.forEach(n=>{html+=`<p style="font-size:13px">🌐 <strong>${n.name}</strong> — ${n.ipv4||'N/A'}</p>`;});
+    html+='</div>';
+  }
+  html+=`<button class="btn btn-outline" onclick="vSystem()">🔄 Rafraîchir</button>`;
+  $('content').innerHTML=html;
+}
+
+// ═══ Audit (Admin) ═══
+async function vAudit(){
+  const logs=await API('/admin/audit');const sessions=await API('/admin/sessions');
+  let html=`<h1 class="page-title">Journal d'audit</h1><p class="page-sub">Sessions et activités utilisateurs</p>`;
+  if(sessions.length){
+    html+='<div class="tbl-card"><div class="tbl-header"><h3>Sessions actives (24h)</h3></div><table><thead><tr><th>Utilisateur</th><th>Session</th><th>Dernière activité</th><th>Actions</th></tr></thead><tbody>';
+    sessions.forEach(s=>{html+=`<tr><td style="font-weight:600">${s.userName}</td><td style="font-size:10px;color:var(--text3)">${(s.sessionId||'').substring(0,12)}...</td><td style="font-size:11px">${s.lastActivity?new Date(s.lastActivity).toLocaleString('fr-FR'):'—'}</td><td>${s.actions}</td></tr>`;});
+    html+='</tbody></table></div>';
+  }
+  html+='<div class="tbl-card"><div class="tbl-header"><h3>Dernières activités</h3></div><table><thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Détails</th><th>IP</th></tr></thead><tbody>';
+  logs.forEach(l=>{html+=`<tr><td style="font-size:10px;color:var(--text3)">${l.createdAt?new Date(l.createdAt).toLocaleString('fr-FR'):'—'}</td><td style="font-weight:500">${l.userName||'—'}</td><td><span class="badge badge-blue">${l.action}</span></td><td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis">${l.details||'—'}</td><td style="font-size:10px;color:var(--text3)">${l.ipAddress||'—'}</td></tr>`;});
+  html+='</tbody></table></div>';
+  $('content').innerHTML=html;
+}
+
+// ═══ Formateur: My Courses ═══
+async function vMyCourses(){
+  const courses=await API('/formateur/courses');
+  let html=`<h1 class="page-title">Mes formations</h1><p class="page-sub">${courses.length} formations</p>
+    <div class="courses-grid">`;
+  courses.forEach(c=>{
+    const statusCls={DRAFT:'badge-yellow',PUBLISHED:'badge-green',ARCHIVED:'badge-red'}[c.status];
+    html+=`<div class="course-card" onclick="window.open('course/${c.id}/','_blank')">
+      <h4>${c.title}</h4><div class="cc-meta">${c.category||'—'} · v${c.version} · ${c.duration||'—'}</div>
+      <div class="cc-desc">${c.description||'Aucune description'}</div>
+      <div class="cc-footer"><span class="badge ${statusCls}">${c.status}</span>${c.quizEnabled?`<span class="badge badge-blue">QCM ${c.questionsCount}q</span>`:''}</div>
+    </div>`;
+  });
+  html+='</div>';
+  $('content').innerHTML=html;
+}
+
+// ═══ AI Course Creator (3-step: Specs → Plan → Generate) ═══
+let _aiGeneratedHtml='';
+let _aiStreamStart=0;
+let _aiPlan=null;
+
+async function vCreateCourse(){
+  const cfg=await API('/formateur/ai/config').catch(()=>({enabled:false}));
+  const groups=await API('/groups/all').catch(()=>[]);
+  _aiPlan=null;_aiGeneratedHtml='';
+
+  let html=`<h1 class="page-title">🤖 Créer un cours avec l'IA</h1>
+    <p class="page-sub">Étape 1 : Spécifications → Étape 2 : Plan du cours → Étape 3 : Génération</p>`;
+
+  if(!cfg.enabled){
+    html+=`<div class="alert alert-error show">⚠️ Agent IA non configuré. Admin > Paramètres > Agent IA.</div>`;
+    $('content').innerHTML=html;return;
+  }
+
+  html+=`<div style="display:flex;gap:4px;margin-bottom:20px" id="aiSteps">
+    <div class="ai-step active" id="step1"><span>1</span> Spécifications</div>
+    <div class="ai-step" id="step2"><span>2</span> Plan du cours</div>
+    <div class="ai-step" id="step3"><span>3</span> Génération</div>
+  </div>
+  <style>
+    .ai-step{padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--text3);transition:.3s;flex:1;text-align:center}
+    .ai-step span{display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--border);color:var(--text3);text-align:center;line-height:22px;font-size:10px;margin-right:6px}
+    .ai-step.active{border-color:var(--primary);color:var(--primary);background:rgba(66,133,244,.06)}
+    .ai-step.active span{background:var(--primary);color:#fff}
+    .ai-step.done{border-color:var(--green);color:var(--green)}
+    .ai-step.done span{background:var(--green);color:#fff}
+  </style>
+  <div style="display:grid;grid-template-columns:420px 1fr;gap:20px;align-items:start">
+    <div id="aiLeftPanel">
+      <!-- STEP 1: Specs -->
+      <div id="aiSpecsPanel">
+        <div class="form-card" style="max-width:none">
+          <h3>📋 Spécifications du cours</h3>
+          <div class="fg"><label>Identifiant du bundle *</label><input id="aiBundleId" placeholder="ex: docker-fondamentaux-2026"></div>
+          <div class="fg"><label>Titre *</label><input id="aiTitle" placeholder="ex: Docker — Les fondamentaux"></div>
+          <div class="fg"><label>Description</label><textarea id="aiDesc" rows="2" placeholder="Description courte"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fg"><label>Catégorie</label><input id="aiCat" placeholder="Cloud / DevOps"></div>
+            <div class="fg"><label>Niveau</label><select id="aiLevel"><option>Débutant</option><option>Intermédiaire</option><option selected>Senior</option><option>Expert</option></select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fg"><label>Durée</label><input id="aiDur" value="2 jours"></div>
+            <div class="fg"><label>Version</label><input id="aiVer" value="1.0.0"></div>
+          </div>
+          <div class="fg"><label>Thèmes souhaités</label><textarea id="aiModules" rows="4" placeholder="Les sujets que le cours doit couvrir..."></textarea></div>
+          <div class="fg"><label>Instructions pour l'IA</label><textarea id="aiInstr" rows="2" placeholder="Labs pratiques, schémas, exemples CLI..."></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fg"><label>Type</label><select id="aiContentType"><option value="FORMATION">📚 Formation</option><option value="DOCUMENT">📄 Document</option></select></div>
+            <div class="fg"><label style="display:flex;align-items:center;gap:6px;padding-top:22px"><input type="checkbox" id="aiQuiz" checked> QCM</label></div>
+          </div>
+          <div id="aiQuizOpts" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="fg"><label>Questions</label><input id="aiQuizN" type="number" value="20"></div>
+            <div class="fg"><label>Seuil %</label><input id="aiPassTh" type="number" value="70"></div>
+            <div class="fg"><label>Tentatives</label><input id="aiMaxAtt" type="number" value="3"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="doAiPlanGenerate()" id="aiPlanBtn" style="width:100%">📋 Générer le plan du cours</button>
+        <div id="aiPlanStatus" style="margin-top:10px"></div>
+      </div>
+      <!-- STEP 2: Plan Editor -->
+      <div id="aiPlanPanel" style="display:none">
+        <div class="form-card" style="max-width:none">
+          <h3>📝 Plan du cours <button class="btn btn-outline btn-sm" onclick="goBackToSpecs()" style="float:right;font-size:10px">← Specs</button></h3>
+          <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Modifiez, ajoutez ou supprimez des modules et slides, puis lancez la génération.</p>
+          <div id="aiPlanEditor"></div>
+          <button class="btn btn-outline btn-sm" onclick="addPlanModule()" style="margin-top:8px">➕ Ajouter un module</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-outline" onclick="doAiPlanGenerate()" style="flex:1">🔄 Nouveau plan</button>
+          <button class="btn btn-primary" onclick="doAiFullGenerate()" id="aiGenBtn" style="flex:1">🤖 Générer le cours</button>
+        </div>
+        <button class="btn btn-outline" onclick="stopAiStream()" id="aiStopBtn" style="display:none;width:100%;margin-top:8px;border-color:var(--red);color:var(--red)">⏹ Arrêter</button>
+        <div id="aiGenStatus" style="margin-top:10px"></div>
+      </div>
+      <!-- STEP 3: Publish -->
+      <div id="aiPublishPanel" style="display:none">
+        <div class="form-card" style="max-width:none">
+          <h3>🚀 Publier</h3>
+          <div class="fg"><label>Groupes</label><div id="aiGroupsList" style="max-height:120px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px">`;
+  groups.forEach(g=>{html+=`<label style="display:flex;align-items:center;gap:8px;padding:5px 10px;cursor:pointer;font-size:12px"><input type="checkbox" class="aiGroupCb" value="${g.id}"> ${g.name}</label>`;});
+  if(!groups.length)html+='<p style="padding:8px;color:var(--text3);font-size:11px">Aucun groupe.</p>';
+  html+=`</div></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success" onclick="doAiPublish('DRAFT')" style="flex:1">📝 Brouillon</button>
+            <button class="btn btn-primary" onclick="doAiPublish('PUBLISHED')" style="flex:1">🚀 Publier</button>
+          </div><div id="aiPublishStatus" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <!-- RIGHT: Preview -->
+    <div>
+      <div class="tbl-card" style="height:calc(100vh - 160px);display:flex;flex-direction:column">
+        <div class="tbl-header" style="flex-shrink:0"><h3 id="previewTitle">👁️ Prévisualisation</h3>
+          <div class="tbl-actions"><button class="btn btn-outline btn-sm" onclick="openPreviewFullscreen()" id="fullscreenBtn" style="display:none">⛶ Plein écran</button></div>
+        </div>
+        <div style="flex:1;position:relative;overflow:hidden" id="previewContainer">
+          <div id="previewPlaceholder" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);text-align:center;padding:40px">
+            <div><div style="font-size:48px;margin-bottom:12px">📋</div><p style="font-size:14px">Remplissez les spécifications puis cliquez sur<br><strong>« Générer le plan »</strong></p></div>
+          </div>
+          <div id="planPreview" style="display:none;height:100%;overflow-y:auto;padding:16px"></div>
+          <iframe id="previewFrame" style="display:none;width:100%;height:100%;border:none" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  $('content').innerHTML=html;
+  $('aiQuiz').addEventListener('change',e=>{$('aiQuizOpts').style.display=e.target.checked?'grid':'none';});
+}
+
+function setAiStep(n){
+  [1,2,3].forEach(i=>{const el=$('step'+i);if(!el)return;el.classList.remove('active','done');if(i<n)el.classList.add('done');if(i===n)el.classList.add('active');});
+}
+window.goBackToSpecs=()=>{setAiStep(1);$('aiSpecsPanel').style.display='';$('aiPlanPanel').style.display='none';$('planPreview').style.display='none';$('previewPlaceholder').style.display='flex';};
+
+// ── Plan Editor Functions ──
+function showPlanEditor(){
+  if(!_aiPlan?.modules)return;
+  let h='';
+  _aiPlan.modules.forEach((mod,mi)=>{
+    h+=`<div class="plan-module" data-mi="${mi}" style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--surface)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:10px;color:var(--cyan);font-family:monospace">M${mod.number||mi+1}</span>
+        <input class="pm-t" data-mi="${mi}" value="${(mod.title||'').replace(/"/g,'&quot;')}" style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--text);font-family:inherit">
+        <button onclick="rmMod(${mi})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px">×</button>
+      </div>`;
+    (mod.slides||[]).forEach((sl,si)=>{
+      h+=`<div class="plan-slide" data-mi="${mi}" data-si="${si}" style="display:grid;grid-template-columns:60px 1fr 20px;gap:4px;align-items:start;margin-left:12px;margin-bottom:4px">
+        <select class="ps-ty" data-mi="${mi}" data-si="${si}" style="font-size:10px;padding:3px;border:1px solid var(--border);border-radius:3px;background:var(--bg3);color:var(--text)"><option value="sc" ${sl.type==='sc'?'selected':''}>📖 Contenu</option><option value="lab" ${sl.type==='lab'?'selected':''}>🔬 Lab</option></select>
+        <div><input class="ps-t" data-mi="${mi}" data-si="${si}" value="${(sl.title||'').replace(/"/g,'&quot;')}" style="width:100%;padding:3px 6px;border:1px solid var(--border);border-radius:3px;font-size:11px;background:var(--bg3);color:var(--text);font-family:inherit;margin-bottom:2px">
+        <input class="ps-d" data-mi="${mi}" data-si="${si}" value="${(sl.content_summary||'').replace(/"/g,'&quot;')}" placeholder="Description..." style="width:100%;padding:2px 6px;border:1px solid var(--border);border-radius:3px;font-size:9px;color:var(--text2);background:var(--bg3);font-family:inherit"></div>
+        <button onclick="rmSlide(${mi},${si})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px">×</button>
+      </div>`;
+    });
+    h+=`<button onclick="addSlide(${mi})" style="margin-left:12px;background:none;border:1px dashed var(--border);border-radius:3px;padding:3px 8px;font-size:9px;color:var(--text3);cursor:pointer">+ slide</button></div>`;
+  });
+  $('aiPlanEditor').innerHTML=h;
+}
+function readPlan(){
+  const modules=[];
+  document.querySelectorAll('.plan-module').forEach(el=>{
+    const title=el.querySelector('.pm-t').value.trim();const slides=[];
+    el.querySelectorAll('.plan-slide').forEach(sl=>{slides.push({title:sl.querySelector('.ps-t').value.trim(),type:sl.querySelector('.ps-ty').value,content_summary:sl.querySelector('.ps-d').value.trim()});});
+    modules.push({number:modules.length+1,title,slides});
+  });
+  _aiPlan={modules};return _aiPlan;
+}
+function showPlanPreview(){
+  if(!_aiPlan?.modules)return;let total=2;
+  let h=`<div style="font-family:inherit"><h2 style="color:var(--text);font-size:16px;margin-bottom:14px">📋 Plan : ${$('aiTitle').value}</h2>`;
+  _aiPlan.modules.forEach(mod=>{total+=1+(mod.slides||[]).length;
+    h+=`<div style="margin-bottom:14px"><h3 style="color:var(--cyan);font-size:13px;font-family:monospace;margin-bottom:4px">Module ${mod.number} — ${mod.title}</h3>`;
+    (mod.slides||[]).forEach(sl=>{h+=`<div style="margin-left:14px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px">${sl.type==='lab'?'🔬':'📖'} ${sl.title}${sl.content_summary?'<div style="color:var(--text3);font-size:9px">'+sl.content_summary+'</div>':''}</div>`;});
+    h+='</div>';});
+  h+=`<div style="margin-top:14px;padding:10px;background:var(--surface);border-radius:6px;font-size:10px;color:var(--text2)">📊 ${_aiPlan.modules.length} modules · ~${total} slides</div></div>`;
+  $('planPreview').innerHTML=h;$('planPreview').style.display='';$('previewPlaceholder').style.display='none';$('previewFrame').style.display='none';$('previewTitle').textContent='📋 Plan du cours';
+}
+window.addPlanModule=()=>{readPlan();_aiPlan.modules.push({number:_aiPlan.modules.length+1,title:'Nouveau module',slides:[{title:'Nouvelle slide',type:'sc',content_summary:''}]});showPlanEditor();showPlanPreview();};
+window.rmMod=(mi)=>{readPlan();_aiPlan.modules.splice(mi,1);_aiPlan.modules.forEach((m,i)=>m.number=i+1);showPlanEditor();showPlanPreview();};
+window.addSlide=(mi)=>{readPlan();_aiPlan.modules[mi].slides.push({title:'Nouvelle slide',type:'sc',content_summary:''});showPlanEditor();showPlanPreview();};
+window.rmSlide=(mi,si)=>{readPlan();_aiPlan.modules[mi].slides.splice(si,1);showPlanEditor();showPlanPreview();};
+
+// ── Async AI Job Polling ──
+let _aiCurrentJobId=null;
+let _aiPollTimer=null;
+
+function pollJob(jobId,onComplete,onProgress){
+  _aiCurrentJobId=jobId;
+  const startTime=Date.now();
+  _aiPollTimer=setInterval(async()=>{
+    try{
+      const job=await API('/formateur/ai/job/'+jobId);
+      const elapsed=((Date.now()-startTime)/1000)|0;
+      if(onProgress)onProgress(job,elapsed);
+
+      if(job.status==='COMPLETED'){
+        clearInterval(_aiPollTimer);_aiPollTimer=null;_aiCurrentJobId=null;
+        onComplete(true,job.result,job.message||'',job.durationMs);
+      }else if(job.status==='FAILED'||job.status==='CANCELLED'){
+        clearInterval(_aiPollTimer);_aiPollTimer=null;_aiCurrentJobId=null;
+        onComplete(false,null,job.message||'Échec',0);
+      }
+    }catch(e){
+      // Network glitch — keep polling
+      console.warn('[AI Poll] Error:',e.message);
+    }
+  },2000);
+}
+
+function cancelPoll(){
+  if(_aiPollTimer){clearInterval(_aiPollTimer);_aiPollTimer=null;}
+  _aiCurrentJobId=null;
+}
+
+function extractJson(raw){
+  const i=raw.indexOf('{'),j=raw.lastIndexOf('}');
+  return(i>=0&&j>i)?raw.substring(i,j+1):raw;
+}
+
+// ── STEP 1→2: Generate Plan (async polling) ──
+window.doAiPlanGenerate=async()=>{
+  const title=$('aiTitle').value.trim();
+  if(!title){($('aiPlanStatus')||$('aiGenStatus')).innerHTML='<div class="alert alert-error show">Titre obligatoire</div>';return;}
+  const btn=$('aiPlanBtn')||$('aiGenBtn');
+  btn.disabled=true;const origText=btn.textContent;btn.textContent='⏳ Soumission...';
+  const statusEl=$('aiPlanStatus')||$('aiGenStatus');
+
+  const specs={title,description:$('aiDesc').value,category:$('aiCat').value,level:$('aiLevel').value,duration:$('aiDur').value,modules:$('aiModules').value,instructions:$('aiInstr').value};
+  let prompt='Génère un plan structuré pour un cours.\n\nTITRE : '+specs.title+'\n';
+  if(specs.description)prompt+='DESCRIPTION : '+specs.description+'\n';
+  if(specs.level)prompt+='NIVEAU : '+specs.level+'\n';
+  if(specs.duration)prompt+='DURÉE : '+specs.duration+'\n';
+  if(specs.modules)prompt+='THÈMES À COUVRIR :\n'+specs.modules+'\n';
+  if(specs.instructions)prompt+='INSTRUCTIONS : '+specs.instructions+'\n';
+  prompt+='\nGénère entre 4 et 8 modules, chacun avec 2-4 slides. Types: "sc" (contenu théorique) ou "lab" (exercice pratique).';
+
+  try{
+    const r=await API('/formateur/ai/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'plan',prompt})});
+    if(!r.jobId){statusEl.innerHTML='<div class="alert alert-error show">❌ Erreur soumission</div>';btn.disabled=false;btn.textContent=origText;return;}
+
+    statusEl.innerHTML=`<div class="alert alert-success show" style="display:flex;align-items:center;gap:8px">
+      <span class="spin" style="display:inline-block">⚙️</span>
+      <span>Job <code>${r.jobId}</code> en cours...</span>
+      <strong id="planJobTimer" style="margin-left:auto;font-size:11px;color:var(--cyan)">0s</strong>
+    </div>`;
+    btn.textContent='⏳ En cours...';
+
+    pollJob(r.jobId,
+      // onComplete
+      (success,result,message,durationMs)=>{
+        btn.disabled=false;btn.textContent=origText;
+        if(success&&result){
+          console.log('[AI Plan] Result:',result.substring(0,200));
+          try{
+            // Backend already validated and extracted JSON
+            _aiPlan=JSON.parse(result);
+            if(!_aiPlan.modules?.length)throw new Error('Pas de modules dans le plan');
+            showPlanEditor();showPlanPreview();setAiStep(2);
+            $('aiSpecsPanel').style.display='none';$('aiPlanPanel').style.display='';
+            statusEl.innerHTML=`<div class="alert alert-success show">✅ Plan généré en ${(durationMs/1000).toFixed(0)}s · ${_aiPlan.modules.length} modules · ${message}</div>`;
+          }catch(pe){
+            console.error('[AI Plan] Parse error:',pe.message);
+            statusEl.innerHTML=`<div class="alert alert-error show">❌ ${pe.message}<details style="margin-top:6px"><summary style="cursor:pointer;font-size:10px">Réponse</summary><pre style="font-size:9px;max-height:150px;overflow:auto;white-space:pre-wrap">${result.substring(0,800).replace(/</g,'&lt;')}</pre></details></div>`;
+          }
+        }else{
+          statusEl.innerHTML=`<div class="alert alert-error show">❌ ${message}</div>`;
+        }
+      },
+      // onProgress
+      (job,elapsed)=>{
+        const el=$('planJobTimer');if(el)el.textContent=elapsed+'s';
+      }
+    );
+  }catch(e){
+    statusEl.innerHTML=`<div class="alert alert-error show">❌ ${e.message}</div>`;
+    btn.disabled=false;btn.textContent=origText;
+  }
+};
+
+// ── STEP 2→3: Generate Full Course (async polling) ──
+window.doAiFullGenerate=async()=>{
+  readPlan();if(!_aiPlan?.modules?.length){$('aiGenStatus').innerHTML='<div class="alert alert-error show">Plan vide</div>';return;}
+  const title=$('aiTitle').value.trim();
+  let prompt='Génère le support de cours HTML COMPLET à partir de ce plan validé :\n\nTITRE : '+title+'\nDESCRIPTION : '+$('aiDesc').value+'\nNIVEAU : '+$('aiLevel').value+'\nDURÉE : '+$('aiDur').value+'\n\nPLAN (à respecter strictement) :\n\n';
+  _aiPlan.modules.forEach(mod=>{prompt+=`MODULE ${mod.number} : ${mod.title}\n`;(mod.slides||[]).forEach(sl=>{prompt+=`  - [${sl.type}] ${sl.title} : ${sl.content_summary}\n`;});prompt+='\n';});
+  if($('aiQuiz').checked)prompt+='Inclure un lien vers quiz.html ('+$('aiQuizN').value+'q).\n';
+  prompt+='\nGénère index.html complet en respectant EXACTEMENT ce plan.';
+
+  setAiStep(3);$('aiGenBtn').disabled=true;$('aiGenBtn').textContent='⏳ Soumission...';$('aiStopBtn').style.display='';
+  $('planPreview').style.display='none';$('previewFrame').style.display='none';
+  $('previewPlaceholder').style.display='flex';
+  $('previewPlaceholder').innerHTML='<div><div style="font-size:48px;margin-bottom:12px" class="spin">⚙️</div><p style="font-size:14px">Génération en cours...</p><p id="courseJobInfo" style="font-size:11px;color:var(--text3)">Soumission du job...</p></div>';
+  $('previewTitle').textContent='⚙️ Génération...';
+
+  try{
+    const r=await API('/formateur/ai/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'course',prompt})});
+    if(!r.jobId){$('aiGenStatus').innerHTML='<div class="alert alert-error show">❌ Erreur soumission</div>';resetGenBtn();return;}
+
+    $('aiGenBtn').textContent='⏳ Job '+r.jobId.substring(0,12)+'...';
+    $('aiGenStatus').innerHTML=`<div class="alert alert-success show" style="display:flex;align-items:center;gap:8px">
+      <span class="spin" style="display:inline-block">⚙️</span>
+      <span>Job <code style="font-size:10px">${r.jobId}</code></span>
+      <strong id="courseJobTimer" style="margin-left:auto;font-size:11px;color:var(--cyan)">0s</strong>
+    </div>`;
+
+    pollJob(r.jobId,
+      // onComplete
+      (success,result,message,durationMs)=>{
+        if(success&&result){
+          _aiGeneratedHtml=result;
+          // Strip code fences
+          if(_aiGeneratedHtml.indexOf('```')>=0){
+            const lines=_aiGeneratedHtml.split('\n');let s=-1,e=-1;
+            for(let i=0;i<lines.length;i++){if(lines[i].trim().startsWith('```')&&s<0)s=i+1;else if(lines[i].trim()==='```'&&s>=0)e=i;}
+            if(s>=0&&e>s)_aiGeneratedHtml=lines.slice(s,e).join('\n').trim();
+          }
+          $('previewFrame').style.display='block';$('previewPlaceholder').style.display='none';$('planPreview').style.display='none';
+          $('previewFrame').srcdoc=_aiGeneratedHtml;$('fullscreenBtn').style.display='';$('aiPublishPanel').style.display='';
+          $('previewTitle').textContent='👁️ Cours généré';
+          $('aiGenStatus').innerHTML=`<div class="alert alert-success show">✅ Cours généré en ${(durationMs/1000).toFixed(0)}s · ${_aiGeneratedHtml.length} car. · ${message}</div>`;
+        }else{
+          $('aiGenStatus').innerHTML=`<div class="alert alert-error show">❌ ${message}</div>`;
+          $('previewPlaceholder').innerHTML='<div><div style="font-size:48px;margin-bottom:12px">❌</div><p>Échec de la génération</p></div>';
+        }
+        resetGenBtn();
+      },
+      // onProgress
+      (job,elapsed)=>{
+        const el=$('courseJobTimer');if(el)el.textContent=elapsed+'s';
+        const info=$('courseJobInfo');if(info)info.textContent='Job '+job.status+' · '+elapsed+'s écoulées...';
+      }
+    );
+  }catch(e){
+    $('aiGenStatus').innerHTML=`<div class="alert alert-error show">❌ ${e.message}</div>`;
+    resetGenBtn();
+  }
+};
+
+function resetGenBtn(){$('aiGenBtn').disabled=false;$('aiGenBtn').textContent='🤖 Générer le cours';$('aiStopBtn').style.display='none';}
+window.stopAiStream=()=>{cancelPoll();$('aiGenStatus').innerHTML='<div class="alert alert-error show">⏹ Annulé</div>';resetGenBtn();};
+window.openPreviewFullscreen=()=>{const w=window.open('','_blank');w.document.write(_aiGeneratedHtml);w.document.close();};
+
+window.doAiPublish=async(status)=>{
+  const bundleId=$('aiBundleId').value.trim(),title=$('aiTitle').value.trim();
+  if(!bundleId||!title){$('aiPublishStatus').innerHTML='<div class="alert alert-error show">ID et titre requis</div>';return;}
+  if(!_aiGeneratedHtml){$('aiPublishStatus').innerHTML='<div class="alert alert-error show">Générez d\'abord</div>';return;}
+  $('aiPublishStatus').innerHTML='<div class="alert alert-success show">⏳ Déploiement...</div>';
+  try{
+    const r=await API('/formateur/ai/publish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bundleId,title,description:$('aiDesc').value,category:$('aiCat').value,level:$('aiLevel').value,duration:$('aiDur').value,version:$('aiVer').value,html:_aiGeneratedHtml,contentType:$('aiContentType').value,withQuiz:$('aiQuiz').checked,quizQuestions:parseInt($('aiQuizN').value)||0,passThreshold:parseInt($('aiPassTh').value)||70,maxAttempts:parseInt($('aiMaxAtt').value)||3})});
+    if(r.success){
+      if(status==='PUBLISHED'&&r.id)await API('/admin/courses/'+r.id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'PUBLISHED'})}).catch(()=>{});
+      const gids=[...document.querySelectorAll('.aiGroupCb:checked')].map(c=>parseInt(c.value));
+      if(gids.length&&r.id)await API('/admin/course-groups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({courseId:r.id,groupIds:gids})}).catch(()=>{});
+      $('aiPublishStatus').innerHTML=`<div class="alert alert-success show">✅ "${r.title}" ${status==='PUBLISHED'?'publié':'brouillon'} (ID: ${r.id})${gids.length?' · '+gids.length+' groupe(s)':''}</div>`;
+    }else $('aiPublishStatus').innerHTML=`<div class="alert alert-error show">❌ ${r.message||'Erreur'}</div>`;
+  }catch(e){$('aiPublishStatus').innerHTML=`<div class="alert alert-error show">❌ ${e.message}</div>`;}
+};
+
+
+// ═══ Plugin Views ═══
+
+// Admin: plugin manager
+async function vPluginsAdmin(){
+  const plugins=await API('/admin/plugins');
+  let html=`<h1 class="page-title">🧩 Plugins</h1>
+    <p class="page-sub">${plugins.length} plugin(s) installé(s) — Modules applicatifs rattachés au portail</p>
+
+    <div class="form-card" style="max-width:500px;margin-bottom:20px">
+      <h3>📦 Installer un plugin</h3>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Uploadez un fichier ZIP contenant <code>plugin.xml</code> + fichiers de l'application.</p>
+      <input type="file" id="pluginZip" accept=".zip" style="margin-bottom:10px">
+      <button class="btn btn-primary" onclick="uploadPlugin()">⬆️ Installer</button>
+      <div id="pluginUploadStatus" style="margin-top:10px"></div>
+    </div>`;
+
+  if(plugins.length){
+    html+='<div class="tbl-card"><div class="tbl-header"><h3>Plugins installés</h3></div><table><thead><tr><th>Plugin</th><th>Version</th><th>Catégorie</th><th>Rôles</th><th>Statut</th><th>Actions</th></tr></thead><tbody>';
+    plugins.forEach(p=>{
+      const stCls=p.status==='ACTIVE'?'badge-green':p.status==='DISABLED'?'badge-yellow':'badge-red';
+      html+=`<tr>
+        <td><span style="font-size:20px;margin-right:6px">${p.icon||'🧩'}</span><strong>${p.name}</strong><br><span style="font-size:10px;color:var(--text3)">${p.pluginId}${p.author?' · '+p.author:''}</span></td>
+        <td>${p.version}</td>
+        <td>${p.category||'—'}</td>
+        <td style="font-size:11px">${p.roles==='*'?'Tous':p.roles}</td>
+        <td><span class="badge ${stCls}">${p.status}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="togglePlugin(${p.id},'${p.status}')" title="${p.status==='ACTIVE'?'Désactiver':'Activer'}">${p.status==='ACTIVE'?'⏸️':'▶️'}</button>
+          <button class="btn btn-sm" onclick="editPlugin(${p.id})" title="Configurer">⚙️</button>
+          <a class="btn btn-sm" href="#plugin-${p.pluginId}" title="Ouvrir">🔗</a>
+          <button class="btn btn-sm" style="color:var(--red)" onclick="deletePlugin(${p.id},'${p.name}')" title="Supprimer">🗑️</button>
+        </td>
+      </tr>`;
+    });
+    html+='</tbody></table></div>';
+  }else{
+    html+='<div class="empty"><div class="icon">🧩</div><p>Aucun plugin installé.<br>Créez un ZIP avec <code>plugin.xml</code> + fichiers HTML pour commencer.</p></div>';
+  }
+
+  // Plugin.xml template
+  html+=`<div class="form-card" style="margin-top:20px;max-width:600px">
+    <h3>📋 Format plugin.xml</h3>
+    <pre style="font-size:10px;background:var(--bg3);padding:12px;border-radius:6px;overflow-x:auto;color:var(--text2)">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;plugin version="1.0"&gt;
+  &lt;metadata&gt;
+    &lt;id&gt;mon-plugin&lt;/id&gt;
+    &lt;name&gt;Mon Plugin&lt;/name&gt;
+    &lt;description&gt;Description du module&lt;/description&gt;
+    &lt;icon&gt;📦&lt;/icon&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+    &lt;author&gt;Auteur&lt;/author&gt;
+    &lt;roles&gt;*&lt;/roles&gt;  &lt;!-- * | ADMIN | FORMATEUR,ADMIN --&gt;
+    &lt;category&gt;Outils&lt;/category&gt;
+    &lt;sort-order&gt;50&lt;/sort-order&gt;
+  &lt;/metadata&gt;
+  &lt;content&gt;
+    &lt;entry-point&gt;index.html&lt;/entry-point&gt;
+  &lt;/content&gt;
+&lt;/plugin&gt;</pre>
+  </div>`;
+
+  $('content').innerHTML=html;
+}
+
+window.uploadPlugin=async()=>{
+  const input=$('pluginZip');
+  if(!input.files.length){$('pluginUploadStatus').innerHTML='<div class="alert alert-error show">Sélectionnez un fichier ZIP</div>';return;}
+  $('pluginUploadStatus').innerHTML='<div class="alert alert-success show">⏳ Installation...</div>';
+  const fd=new FormData();fd.append('plugin',input.files[0]);
+  try{
+    const r=await fetch('api/admin/plugins/upload',{method:'POST',body:fd}).then(r=>r.json());
+    if(r.success){$('pluginUploadStatus').innerHTML=`<div class="alert alert-success show">✅ Plugin "${r.name}" installé (ID: ${r.id})</div>`;setTimeout(()=>vPluginsAdmin(),1500);}
+    else $('pluginUploadStatus').innerHTML=`<div class="alert alert-error show">❌ ${r.message}</div>`;
+  }catch(e){$('pluginUploadStatus').innerHTML=`<div class="alert alert-error show">❌ ${e.message}</div>`;}
+};
+window.togglePlugin=async(id,status)=>{
+  const ns=status==='ACTIVE'?'DISABLED':'ACTIVE';
+  await API('/admin/plugins/'+id+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:ns})});
+  vPluginsAdmin();
+};
+window.deletePlugin=async(id,name)=>{
+  if(!confirm('Supprimer le plugin "'+name+'" et tous ses fichiers ?'))return;
+  await API('/admin/plugins/'+id,{method:'DELETE'});
+  vPluginsAdmin();
+};
+window.editPlugin=async(id)=>{
+  const plugins=await API('/admin/plugins');
+  const p=plugins.find(x=>x.id===id);if(!p)return;
+  openModal(`<h3>⚙️ Configurer : ${p.name}</h3>
+    <div class="fg"><label>Nom</label><input id="epName" value="${p.name}"></div>
+    <div class="fg"><label>Icône</label><input id="epIcon" value="${p.icon}" maxlength="4" style="width:60px"></div>
+    <div class="fg"><label>Catégorie</label><input id="epCat" value="${p.category||''}"></div>
+    <div class="fg"><label>Rôles (séparés par virgule, ou * pour tous)</label><input id="epRoles" value="${p.roles}"></div>
+    <div class="fg"><label>Ordre d'affichage</label><input id="epOrder" type="number" value="${p.sortOrder}"></div>
+    <div class="fg"><label>Configuration JSON</label><textarea id="epConfig" rows="4" style="font-family:monospace;font-size:11px">${p.configJson||'{}'}</textarea></div>
+    <button class="btn btn-primary" onclick="savePluginEdit(${id})">💾 Enregistrer</button>`);
+};
+window.savePluginEdit=async(id)=>{
+  await API('/admin/plugins/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    name:$('epName').value,icon:$('epIcon').value,category:$('epCat').value,roles:$('epRoles').value,sortOrder:parseInt($('epOrder').value)||100
+  })});
+  // Save config separately
+  const plugins=await API('/admin/plugins');
+  const p=plugins.find(x=>x.id===id);
+  if(p)await API('/admin/plugins/'+p.pluginId+'/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({config:$('epConfig').value})});
+  closeModal();vPluginsAdmin();
+};
+
+// User: embed plugin in iframe
+function vPluginEmbed(pluginId){
+  const plugin=_activePlugins.find(p=>p.pluginId===pluginId);
+  const name=plugin?plugin.name:pluginId;
+  const icon=plugin?plugin.icon:'🧩';
+  $('content').innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <span style="font-size:28px">${icon}</span>
+    <div><h1 class="page-title" style="margin:0">${name}</h1>
+      ${plugin?.description?`<p style="font-size:12px;color:var(--text3);margin:2px 0 0">${plugin.description}</p>`:''}
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="openPluginFullscreen('${pluginId}')" style="margin-left:auto">⛶ Plein écran</button>
+  </div>
+  <iframe src="plugin/${pluginId}/" style="width:100%;height:calc(100vh - 140px);border:1px solid var(--border);border-radius:10px" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+
+  // Listen for plugin notifications
+  window.addEventListener('message',function handler(e){
+    if(e.data?.type==='lms-plugin-notify'){
+      // Could show a toast notification
+      console.log('[Plugin Notify]',e.data.message);
+    }
+  });
+}
+window.openPluginFullscreen=(pid)=>{window.open('plugin/'+pid+'/','_blank');};
+
+// ═══ Upload Bundle ═══
+async function vUpload(){
+  $('content').innerHTML=`<h1 class="page-title">Déployer un contenu</h1><p class="page-sub">Uploadez un fichier ZIP contenant bundle.xml + fichiers HTML</p>
+    <div class="form-card" style="margin-bottom:16px;max-width:500px">
+      <h3>Type de contenu</h3>
+      <div style="display:flex;gap:12px;margin-top:10px">
+        <label style="flex:1;display:flex;align-items:center;gap:10px;padding:14px;border:2px solid var(--primary);border-radius:10px;cursor:pointer;background:rgba(66,133,244,.04)" id="typeFormation" onclick="setContentType('FORMATION')">
+          <input type="radio" name="ctype" value="FORMATION" checked> <div><strong style="font-size:13px">📚 Formation</strong><div style="font-size:11px;color:var(--text3)">Cours + QCM évalué</div></div>
+        </label>
+        <label style="flex:1;display:flex;align-items:center;gap:10px;padding:14px;border:2px solid var(--border);border-radius:10px;cursor:pointer" id="typeDocument" onclick="setContentType('DOCUMENT')">
+          <input type="radio" name="ctype" value="DOCUMENT"> <div><strong style="font-size:13px">📄 Document</strong><div style="font-size:11px;color:var(--text3)">Support, référence, guide</div></div>
+        </label>
+      </div>
+    </div>
+    <div class="upload-zone" id="dropZone" onclick="$('fileInput').click()">
+      <div class="icon">📦</div><p>Cliquez ou glissez un fichier ZIP ici</p>
+      <input type="file" id="fileInput" accept=".zip" style="display:none" onchange="uploadFile(this.files[0])">
+    </div>
+    <div id="uploadStatus"></div>
+    <div class="form-card"><h3>Structure attendue du ZIP</h3>
+      <pre style="font-size:11px;color:var(--text2);line-height:1.6">mon-contenu.zip
+├── bundle.xml        ← Descripteur (obligatoire)
+├── index.html        ← Point d'entrée
+├── quiz.html         ← QCM (optionnel, formations)
+├── css/ js/ images/  ← Ressources statiques</pre>
+    </div>`;
+  const dz=$('dropZone');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])uploadFile(e.dataTransfer.files[0]);});
+}
+let _uploadContentType='FORMATION';
+window.setContentType=t=>{
+  _uploadContentType=t;
+  $('typeFormation').style.borderColor=t==='FORMATION'?'var(--primary)':'var(--border)';
+  $('typeFormation').style.background=t==='FORMATION'?'rgba(66,133,244,.04)':'';
+  $('typeDocument').style.borderColor=t==='DOCUMENT'?'var(--primary)':'var(--border)';
+  $('typeDocument').style.background=t==='DOCUMENT'?'rgba(66,133,244,.04)':'';
+};
+window.uploadFile=async file=>{
+  if(!file.name.endsWith('.zip')){$('uploadStatus').innerHTML='<div class="alert alert-error show">❌ Le fichier doit être un ZIP</div>';return;}
+  $('uploadStatus').innerHTML='<div class="alert alert-success show">⏳ Upload et indexation en cours...</div>';
+  const fd=new FormData();fd.append('file',file);fd.append('content_type',_uploadContentType);
+  try{
+    const r=await fetch('api/formateur/upload',{method:'POST',body:fd}).then(r=>r.json());
+    const typeLabel=_uploadContentType==='DOCUMENT'?'Document':'Formation';
+    if(r.id||r.bundleId)$('uploadStatus').innerHTML=`<div class="alert alert-success show">✅ ${typeLabel} "<strong>${r.title}</strong>" v${r.version} déployé et indexé (ID: ${r.id})</div>`;
+    else $('uploadStatus').innerHTML=`<div class="alert alert-error show">❌ ${r.message||'Erreur'}</div>`;
+  }catch(e){$('uploadStatus').innerHTML=`<div class="alert alert-error show">❌ Erreur: ${e.message}</div>`;}
+};
+
+// ═══ Results (Formateur) ═══
+async function vResults(){
+  const results=await API('/formateur/results');
+  let html=`<h1 class="page-title">Résultats QCM</h1><p class="page-sub">${results.length} résultats</p>
+    <div class="tbl-card"><div class="tbl-header"><h3>Tous les résultats</h3><input class="search" id="resSearch" placeholder="🔍 Rechercher..." oninput="filterRes()"></div>
+    <table><thead><tr><th>ID</th><th>Étudiant</th><th>Formation</th><th>Score</th><th>Bonnes</th><th>Tentative</th><th>Durée</th><th>Date</th></tr></thead><tbody id="resTbody">`;
+  results.forEach(r=>{
+    const dur=r.durationSeconds>0?`${Math.floor(r.durationSeconds/60)}:${String(r.durationSeconds%60).padStart(2,'0')}`:'—';
+    html+=`<tr data-search="${r.userName} ${r.courseTitle}" data-cid="${r.courseId}">
+      <td>${r.id}</td><td style="font-weight:600">${r.userName||'—'}</td><td>${r.courseTitle||'—'}</td>
+      <td><span class="badge ${r.score>=70?'badge-green':'badge-red'}">${r.score}%</span></td>
+      <td>${r.correctAnswers}/${r.totalQuestions}</td><td>#${r.attemptNumber}</td><td style="font-size:11px">${dur}</td>
+      <td style="font-size:11px;color:var(--text3)">${r.submittedAt?new Date(r.submittedAt).toLocaleString('fr-FR'):'—'}</td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  $('content').innerHTML=html;
+}
+window.filterRes=()=>{const v=$('resSearch').value.toLowerCase();document.querySelectorAll('#resTbody tr').forEach(r=>{r.style.display=r.dataset.search?.toLowerCase().includes(v)?'':'none';});};
+window.filterResultsByCourse=cid=>{document.querySelectorAll('#resTbody tr').forEach(r=>{r.style.display=r.dataset.cid==cid?'':'none';});};
+
+// ═══ Student: Courses ═══
+async function vStudentCourses(){
+  const courses=await API('/student/courses');
+  let html=`<h1 class="page-title">Mes cours</h1><p class="page-sub">${courses.length} cours disponibles</p><div class="courses-grid">`;
+  courses.forEach(c=>{
+    html+=`<div class="course-card" onclick="window.open('course/${c.id}/','_blank')">
+      <h4>${c.title}</h4><div class="cc-meta">${c.category||''} · ${c.level||''} · ${c.duration||''}</div>
+      <div class="cc-desc">${c.description||''}</div>
+      <div class="cc-footer">${c.quizEnabled?`<span class="badge badge-blue">QCM ${c.questionsCount}q · Seuil ${c.passThreshold}%</span>`:''}<span class="badge badge-green">v${c.version}</span></div>
+    </div>`;
+  });
+  if(!courses.length)html+='<div class="empty"><div class="icon">📚</div><p>Aucun cours disponible. Contactez votre formateur.</p></div>';
+  html+='</div>';
+  $('content').innerHTML=html;
+}
+
+// ═══ Student: My Results ═══
+async function vMyResults(){
+  const results=await API('/student/results');const prog=await API('/student/progress');
+  let html=`<h1 class="page-title">Mes résultats</h1><p class="page-sub">Historique de mes tentatives QCM</p>`;
+  if(prog.length){
+    html+='<div class="stats">';
+    const passed=prog.filter(p=>p.passed).length;
+    html+=`<div class="stat green"><span class="stat-num">${passed}/${prog.length}</span><span class="stat-label">Cours validés</span></div>`;
+    html+='</div>';
+  }
+  html+='<div class="tbl-card"><div class="tbl-header"><h3>Historique</h3></div><table><thead><tr><th>Formation</th><th>Score</th><th>Bonnes</th><th>Tentative</th><th>Durée</th><th>Date</th><th>Statut</th></tr></thead><tbody>';
+  results.forEach(r=>{
+    const dur=r.durationSeconds>0?`${Math.floor(r.durationSeconds/60)}:${String(r.durationSeconds%60).padStart(2,'0')}`:'—';
+    html+=`<tr><td style="font-weight:600">${r.courseTitle||'—'}</td><td style="font-weight:700;color:${r.score>=70?'var(--green)':'var(--red)'}">${r.score}%</td>
+      <td>${r.correctAnswers}/${r.totalQuestions}</td><td>#${r.attemptNumber}</td><td>${dur}</td>
+      <td style="font-size:11px;color:var(--text3)">${r.submittedAt?new Date(r.submittedAt).toLocaleString('fr-FR'):'—'}</td>
+      <td><span class="badge ${r.score>=70?'badge-green':'badge-red'}">${r.score>=70?'Validé':'Échoué'}</span></td></tr>`;
+  });
+  if(!results.length)html+='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Aucun résultat</td></tr>';
+  html+='</tbody></table></div>';
+  $('content').innerHTML=html;
+}
+
+// ═══ Search ═══
+async function vSearch(){
+  let html=`<h1 class="page-title">Recherche</h1><p class="page-sub">Recherchez dans les formations et documents publiés</p>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <input class="search" id="searchInput" placeholder="🔍 Tapez votre recherche (min 2 caractères)..." style="flex:1;min-width:250px;padding:12px 16px;font-size:14px" onkeydown="if(event.key==='Enter')doGlobalSearch()">
+      <select id="searchType" style="padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px">
+        <option value="">Tout</option><option value="FORMATION">Formations</option><option value="DOCUMENT">Documents</option>
+      </select>
+      <button class="btn btn-primary" onclick="doGlobalSearch()">Rechercher</button>
+    </div>
+    <div id="searchResults"><div class="empty"><div class="icon">🔍</div><p>Entrez un terme de recherche</p></div></div>`;
+  $('content').innerHTML=html;
+  setTimeout(()=>$('searchInput').focus(),100);
+}
+window.doGlobalSearch=async()=>{
+  const q=$('searchInput').value.trim();
+  if(q.length<2){$('searchResults').innerHTML='<div class="empty"><p>Minimum 2 caractères</p></div>';return;}
+  const type=$('searchType').value;
+  $('searchResults').innerHTML='<div class="loading">Recherche en cours...</div>';
+  try{
+    const results=await fetch('api/public/search?q='+encodeURIComponent(q)+(type?'&type='+type:'')).then(r=>r.json());
+    if(results.error){$('searchResults').innerHTML=`<div class="alert alert-error show">${results.message}</div>`;return;}
+    if(!results.length){$('searchResults').innerHTML='<div class="empty"><div class="icon">📭</div><p>Aucun résultat pour "'+q+'"</p></div>';return;}
+    let h='<div class="courses-grid">';
+    results.forEach(c=>{
+      const isDoc=c.contentType==='DOCUMENT';
+      const icon=isDoc?'📄':'📚';
+      const typeBadge=isDoc?'<span class="badge badge-purple">Document</span>':'<span class="badge badge-blue">Formation</span>';
+      h+=`<div class="course-card" onclick="window.open('course/${c.id}/','_blank')">
+        <h4>${icon} ${c.title}</h4><div class="cc-meta">${c.category||'—'} · v${c.version}</div>
+        <div class="cc-desc">${c.description||''}</div>
+        <div class="cc-footer">${typeBadge}${c.quizEnabled?'<span class="badge badge-green">QCM '+c.questionsCount+'q</span>':''}<span class="badge badge-yellow">${c.level||'—'}</span></div>
+      </div>`;
+    });
+    h+='</div><p style="font-size:12px;color:var(--text3);margin-top:12px">'+results.length+' résultat(s) pour "'+q+'"</p>';
+    $('searchResults').innerHTML=h;
+  }catch(e){$('searchResults').innerHTML=`<div class="alert alert-error show">Erreur: ${e.message}</div>`;}
+};
+
+// ═══ Documents (GED) ═══
+async function vDocuments(){
+  const docs=await API('/ged/documents');
+  let html=`<h1 class="page-title">📄 Bibliothèque documentaire</h1><p class="page-sub">${docs.length} document(s) disponible(s)</p>`;
+  if(docs.length){
+    html+='<div class="fg" style="margin-bottom:16px"><input class="search" id="docSearch" placeholder="🔍 Filtrer les documents..." oninput="filterDocs()" style="width:300px"></div>';
+    html+='<div class="courses-grid" id="docsGrid">';
+    docs.forEach(c=>{
+      html+=`<div class="course-card" data-search="${c.title} ${c.category} ${c.tags} ${c.description}" onclick="window.open('course/${c.id}/','_blank')">
+        <h4>📄 ${c.title}</h4><div class="cc-meta">${c.category||'—'} · v${c.version} · ${c.duration||'—'}</div>
+        <div class="cc-desc">${c.description||''}</div>
+        <div class="cc-footer"><span class="badge badge-purple">Document</span>${c.authorName?'<span class="badge badge-yellow">'+c.authorName+'</span>':''}</div>
+      </div>`;
+    });
+    html+='</div>';
+  }else{
+    html+='<div class="empty"><div class="icon">📄</div><p>Aucun document disponible dans vos groupes.</p></div>';
+  }
+  $('content').innerHTML=html;
+}
+window.filterDocs=()=>{const q=$('docSearch').value.toLowerCase();document.querySelectorAll('#docsGrid .course-card').forEach(c=>{c.style.display=c.dataset.search.toLowerCase().includes(q)?'':'none';});};
+
+// ═══ Profile ═══
+async function vProfile(){
+  const p=await API('/profile');
+  const initials=(p.prenom+' '+p.nom).split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const photoHtml=p.photoUrl
+    ?`<img src="${p.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    :`<div style="width:100%;height:100%;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:36px">${initials}</div>`;
+
+  let html=`<h1 class="page-title">👤 Mon profil</h1><p class="page-sub">Gérez vos informations personnelles</p>
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start">
+
+    <!-- LEFT: Photo + Info card -->
+    <div>
+      <div class="form-card" style="text-align:center;max-width:none">
+        <div id="profilePhotoPreview" style="width:96px;height:96px;border-radius:50%;margin:0 auto 12px;overflow:hidden;border:3px solid var(--primary)">${photoHtml}</div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(this.files[0])">
+        <button class="btn btn-outline btn-sm" onclick="$('photoInput').click()" style="margin-bottom:12px">📷 Changer la photo</button>
+        <p style="font-size:10px;color:var(--text3)">JPEG, PNG ou GIF · 500 Ko max</p>
+        <div id="photoStatus" style="margin-top:8px"></div>
+        <hr style="border-color:var(--border);margin:16px 0">
+        <h3 style="font-size:16px;margin-bottom:4px">${p.prenom} ${p.nom}</h3>
+        <span class="badge badge-${p.role==='ADMIN'?'purple':p.role==='FORMATEUR'?'blue':p.role==='GED'?'yellow':'green'}">${p.role}</span>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px">Inscrit le ${p.createdAt?new Date(p.createdAt).toLocaleDateString('fr-FR'):'—'}</p>
+        ${p.lastLogin?`<p style="font-size:11px;color:var(--text3)">Dernière connexion : ${new Date(p.lastLogin).toLocaleString('fr-FR')}</p>`:''}
+      </div>
+    </div>
+
+    <!-- RIGHT: Edit forms -->
+    <div>
+      <!-- Profile info form -->
+      <div class="form-card" style="max-width:none">
+        <h3>📋 Informations</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg"><label>Nom</label><input value="${p.nom}" disabled style="background:var(--bg3);cursor:not-allowed"></div>
+          <div class="fg"><label>Prénom</label><input value="${p.prenom}" disabled style="background:var(--bg3);cursor:not-allowed"></div>
+        </div>
+        <div class="fg"><label>Nom d'utilisateur</label><input id="pUsername" value="${p.username}"></div>
+        <div class="fg"><label>Email</label><input id="pEmail" value="${p.email||''}" placeholder="mon@email.com" type="email"></div>
+        <div class="fg"><label>Description <span style="color:var(--text3);font-weight:400">(50 mots max)</span></label>
+          <textarea id="pBio" rows="3" maxlength="500" placeholder="Présentez-vous en quelques mots..." oninput="updateWordCount()">${p.bio||''}</textarea>
+          <span id="bioWordCount" style="font-size:10px;color:var(--text3);float:right"></span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary" onclick="saveProfile()">💾 Enregistrer</button>
+          <div id="profileAlert" class="alert alert-success" style="margin:0">✅ Profil mis à jour</div>
+        </div>
+      </div>
+
+      <!-- Password change form -->
+      <div class="form-card" style="max-width:none;margin-top:16px">
+        <h3>🔐 Changer le mot de passe</h3>
+        <div class="fg"><label>Mot de passe actuel</label><input id="pCurPwd" type="password" placeholder="••••••••"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg"><label>Nouveau mot de passe</label><input id="pNewPwd" type="password" placeholder="Min. 4 caractères"></div>
+          <div class="fg"><label>Confirmer</label><input id="pConfPwd" type="password" placeholder="Répétez le mot de passe"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline" onclick="changePassword()" style="border-color:var(--yellow);color:var(--yellow)">🔐 Modifier le mot de passe</button>
+          <div id="pwdAlert" class="alert alert-success" style="margin:0">✅ Mot de passe modifié</div>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+  $('content').innerHTML=html;
+  updateWordCount();
+}
+
+window.updateWordCount=()=>{
+  const bio=$('pBio').value.trim();
+  const count=bio?bio.split(/\s+/).length:0;
+  const el=$('bioWordCount');
+  el.textContent=count+'/50 mots';
+  el.style.color=count>50?'var(--red)':'var(--text3)';
+};
+
+window.saveProfile=async()=>{
+  const bio=$('pBio').value.trim();
+  const wordCount=bio?bio.split(/\s+/).length:0;
+  if(wordCount>50){$('profileAlert').textContent='❌ La description est limitée à 50 mots';$('profileAlert').className='alert alert-error show';setTimeout(()=>$('profileAlert').classList.remove('show'),3000);return;}
+  try{
+    const r=await API('/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      username:$('pUsername').value,email:$('pEmail').value,bio
+    })});
+    if(r.success){
+      $('profileAlert').textContent='✅ Profil mis à jour';$('profileAlert').className='alert alert-success show';
+      S.username=$('pUsername').value;
+      setTimeout(()=>$('profileAlert').classList.remove('show'),2000);
+    }else{
+      $('profileAlert').textContent='❌ '+(r.message||'Erreur');$('profileAlert').className='alert alert-error show';
+      setTimeout(()=>$('profileAlert').classList.remove('show'),3000);
+    }
+  }catch(e){$('profileAlert').textContent='❌ '+e.message;$('profileAlert').className='alert alert-error show';}
+};
+
+window.changePassword=async()=>{
+  const cur=$('pCurPwd').value,np=$('pNewPwd').value,cp=$('pConfPwd').value;
+  if(!cur||!np){$('pwdAlert').textContent='❌ Tous les champs sont obligatoires';$('pwdAlert').className='alert alert-error show';return;}
+  if(np!==cp){$('pwdAlert').textContent='❌ Les mots de passe ne correspondent pas';$('pwdAlert').className='alert alert-error show';return;}
+  try{
+    const r=await API('/profile/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      currentPassword:cur,newPassword:np,confirmPassword:cp
+    })});
+    if(r.success){
+      $('pwdAlert').textContent='✅ Mot de passe modifié';$('pwdAlert').className='alert alert-success show';
+      $('pCurPwd').value='';$('pNewPwd').value='';$('pConfPwd').value='';
+      setTimeout(()=>$('pwdAlert').classList.remove('show'),2000);
+    }else{
+      $('pwdAlert').textContent='❌ '+(r.message||'Erreur');$('pwdAlert').className='alert alert-error show';
+      setTimeout(()=>$('pwdAlert').classList.remove('show'),3000);
+    }
+  }catch(e){$('pwdAlert').textContent='❌ '+e.message;$('pwdAlert').className='alert alert-error show';}
+};
+
+window.uploadPhoto=async file=>{
+  if(!file)return;
+  if(file.size>500000){$('photoStatus').innerHTML='<div class="alert alert-error show">❌ Max 500 Ko</div>';return;}
+  if(!file.type.startsWith('image/')){$('photoStatus').innerHTML='<div class="alert alert-error show">❌ Image uniquement</div>';return;}
+  $('photoStatus').innerHTML='<div class="alert alert-success show">⏳ Upload...</div>';
+  const fd=new FormData();fd.append('photo',file);
+  try{
+    const r=await fetch('api/profile/photo',{method:'POST',body:fd}).then(r=>r.json());
+    if(r.success&&r.photoUrl){
+      $('profilePhotoPreview').innerHTML=`<img src="${r.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      // Update sidebar too
+      $('sbPhoto').innerHTML=`<img src="${r.photoUrl}" style="width:100%;height:100%;object-fit:cover">`;
+      S.photoUrl=r.photoUrl;
+      $('photoStatus').innerHTML='<div class="alert alert-success show">✅ Photo mise à jour</div>';
+      setTimeout(()=>$('photoStatus').innerHTML='',2000);
+    }else{
+      $('photoStatus').innerHTML=`<div class="alert alert-error show">❌ ${r.message||'Erreur'}</div>`;
+    }
+  }catch(e){$('photoStatus').innerHTML=`<div class="alert alert-error show">❌ ${e.message}</div>`;}
+};
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4285f4;--primary-dark:#3367d6;--primary-light:rgba(66,133,244,.08);--bg:#ffffff;--bg2:#f8fafc;--bg3:#f1f5f9;--surface:#fff;--border:#e2e8f0;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--purple:#8b5cf6;--cyan:#06b6d4;--radius:12px}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:1000;display:flex;align-items:center;padding:0 32px}
+nav .brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;color:var(--text)}
+nav .brand img{height:32px}
+nav .brand .dot{color:var(--primary)}
+nav .links{display:flex;gap:6px;margin-left:auto;align-items:center}
+nav .links a{font-size:13px;font-weight:500;color:var(--text2);text-decoration:none;padding:8px 14px;border-radius:8px;transition:.2s}
+nav .links a:hover{color:var(--primary);background:var(--primary-light)}
+nav .links .btn-login{background:var(--primary);color:#fff;font-weight:600}
+nav .links .btn-login:hover{background:var(--primary-dark);color:#fff}
+nav .links .btn-register{border:1px solid var(--primary);color:var(--primary);font-weight:600}
+nav .links .btn-register:hover{background:var(--primary);color:#fff}
+@media(max-width:768px){nav{padding:0 16px}nav .links a.hide-m{display:none}}
+
+/* HERO */
+.hero{padding:140px 32px 80px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(66,133,244,.06),transparent);pointer-events:none}
+.hero .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-light);border:1px solid rgba(66,133,244,.15);padding:5px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:.5px;text-transform:uppercase}
+.hero h1{font-size:clamp(32px,5vw,64px);font-weight:900;letter-spacing:-1.5px;line-height:1.05;margin-bottom:18px}
+.hero h1 .hl{color:var(--primary)}
+.hero p{font-size:clamp(15px,2vw,19px);color:var(--text2);max-width:640px;margin:0 auto 32px;line-height:1.65;font-weight:400}
+.hero .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero .cta{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;transition:.3s}
+.hero .cta-primary{background:var(--primary);color:#fff;box-shadow:0 4px 20px rgba(66,133,244,.3)}
+.hero .cta-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(66,133,244,.4)}
+.hero .cta-outline{border:2px solid var(--border);color:var(--text)}
+.hero .cta-outline:hover{border-color:var(--primary);color:var(--primary)}
+.hero .stats{display:flex;gap:48px;justify-content:center;margin-top:48px;flex-wrap:wrap}
+.hero .stat-item{text-align:center}.stat-item .num{font-size:32px;font-weight:900;color:var(--primary)}.stat-item .label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* SECTIONS */
+section{padding:80px 32px;max-width:1200px;margin:0 auto}
+section.alt{background:var(--bg2)}
+section.alt-inner{max-width:1200px;margin:0 auto}
+.sec-header{text-align:center;margin-bottom:48px}
+.sec-header .label{font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.sec-header h2{font-size:clamp(24px,3.5vw,40px);font-weight:800;letter-spacing:-.5px}
+.sec-header p{font-size:15px;color:var(--text2);max-width:560px;margin:10px auto 0;line-height:1.65}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.feature{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:.3s}
+.feature:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(66,133,244,.08);transform:translateY(-4px)}
+.feature .icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-size:22px;margin-bottom:16px}
+.feature .icon.blue{background:rgba(66,133,244,.1)}.feature .icon.green{background:rgba(34,197,94,.1)}.feature .icon.purple{background:rgba(139,92,246,.1)}.feature .icon.cyan{background:rgba(6,182,212,.1)}.feature .icon.yellow{background:rgba(234,179,8,.1)}.feature .icon.red{background:rgba(239,68,68,.1)}
+.feature h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.feature p{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* HOW IT WORKS */
+.personas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.persona{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:.3s}
+.persona:hover{box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.persona-header{padding:24px 24px 0;display:flex;align-items:center;gap:14px}
+.persona-header .avatar{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-size:24px}
+.persona-header .info h3{font-size:17px;font-weight:700}.persona-header .info span{font-size:12px;color:var(--text3)}
+.persona-body{padding:16px 24px 24px}
+.persona-body ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.persona-body li{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text2);line-height:1.5}
+.persona-body li::before{content:'✓';color:var(--primary);font-weight:700;flex-shrink:0;margin-top:1px}
+
+/* CATALOG */
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.course-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;transition:.3s;position:relative;overflow:hidden}
+.course-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary);transform:scaleX(0);transform-origin:left;transition:.3s}
+.course-card:hover{border-color:var(--primary);box-shadow:0 6px 24px rgba(66,133,244,.08)}.course-card:hover::before{transform:scaleX(1)}
+.course-card .cat{font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.course-card h3{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.course-card .desc{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.course-card .meta{display:flex;gap:8px;flex-wrap:wrap}
+.course-card .tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;background:var(--bg3);color:var(--text2)}
+.catalog-empty{text-align:center;padding:48px;color:var(--text3);font-size:14px}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+@media(max-width:768px){.about-grid{grid-template-columns:1fr}}
+.about-text h3{font-size:22px;font-weight:700;margin-bottom:12px}
+.about-text p{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.about-card{background:var(--primary-light);border:1px solid rgba(66,133,244,.12);border-radius:16px;padding:32px}
+.about-card h4{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:8px}
+.about-card p{font-size:13px;color:var(--text2);line-height:1.65}
+.about-contact{margin-top:12px;font-size:13px;color:var(--text2)}
+.about-contact a{color:var(--primary);text-decoration:none;font-weight:600}
+
+/* FOOTER */
+footer{background:#0f172a;color:rgba(255,255,255,.7);padding:48px 32px 24px}
+footer .inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px}
+@media(max-width:768px){footer .inner{grid-template-columns:1fr}}
+footer h4{color:#fff;font-size:14px;margin-bottom:12px}
+footer p{font-size:12px;line-height:1.6}
+footer a{color:rgba(255,255,255,.7);text-decoration:none;font-size:12px;display:block;padding:3px 0;transition:.2s}
+footer a:hover{color:#fff}
+footer .copy{text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.4)}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="brand">
+    <img id="navLogo" src="" alt="" style="display:none">
+    <span id="navName">LMS Platform</span>
+  </div>
+  <div class="links">
+    <a href="#features" class="hide-m">Fonctionnalités</a>
+    <a href="#how" class="hide-m">Comment ça marche</a>
+    <a href="#catalog">Formations</a>
+    <a href="#documents" class="hide-m">Documents</a>
+    <a href="#about" class="hide-m">À propos</a>
+    <a href="login.html" class="btn-login">Se connecter</a>
+    <a href="login.html" class="btn-register" id="registerLink" style="display:none" onclick="localStorage.setItem('openRegister','1')">S'inscrire</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Plateforme de formation professionnelle</div>
+  <h1>Formez-vous avec<br><span class="hl" id="heroName">LMS Platform</span></h1>
+  <p id="heroDesc">Accédez à des formations interactives, validez vos compétences par QCM, et suivez votre progression en temps réel.</p>
+  <div class="ctas">
+    <a href="login.html" class="cta cta-primary">🚀 Accéder à la plateforme</a>
+    <a href="#catalog" class="cta cta-outline">📚 Voir les formations</a>
+  </div>
+  <div class="stats" id="heroStats"></div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="sec-header">
+    <div class="label">Fonctionnalités</div>
+    <h2>Tout pour la formation en entreprise</h2>
+    <p>Une plateforme légère, auto-hébergée, sans dépendance externe. Déployable en une commande.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature"><div class="icon blue">📚</div><h3>Cours interactifs HTML</h3><p>Déployez des formations au format bundle HTML. Slides navigables, labs guidés, code syntax-highlighted. Zéro outil d'authoring propriétaire.</p></div>
+    <div class="feature"><div class="icon green">🤖</div><h3>Création de cours par IA</h3><p>Un agent IA intégré (Claude) génère vos supports de cours à partir de vos spécifications. Prévisualisation et publication en un clic.</p></div>
+    <div class="feature"><div class="icon purple">✅</div><h3>QCMs de validation</h3><p>Scoring automatique, anti-triche (shuffle des réponses), seuil de validation configurable, nombre de tentatives limitable.</p></div>
+    <div class="feature"><div class="icon cyan">📄</div><h3>GED — Bibliothèque documentaire</h3><p>Publiez et indexez des documents de référence (guides, procédures, manuels). Recherche full-text intégrée dans le contenu HTML.</p></div>
+    <div class="feature"><div class="icon yellow">🔍</div><h3>Recherche intelligente</h3><p>Moteur de recherche full-text indexant les balises meta, titres et contenus de chaque bundle. Filtrage par type (formation/document).</p></div>
+    <div class="feature"><div class="icon red">👥</div><h3>Gestion des groupes</h3><p>Organisez les apprenants en groupes. Assignez formations et documents par groupe. 4 rôles : admin, formateur, étudiant, GED.</p></div>
+    <div class="feature"><div class="icon blue">📊</div><h3>Reporting détaillé</h3><p>Suivi de progression par étudiant et par formation. Scores par module, historique des tentatives, taux de réussite global.</p></div>
+    <div class="feature"><div class="icon green">🔐</div><h3>Sécurité &amp; OAuth2</h3><p>BCrypt, sessions sécurisées, OAuth2 Google &amp; Microsoft, inscription avec validation admin, audit des connexions.</p></div>
+    <div class="feature"><div class="icon purple">💾</div><h3>Backup &amp; Restore XML</h3><p>Sauvegarde complète du site en XML. Restauration tolérante aux écarts de schéma entre versions. Backup auto avant chaque restore.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="alt" id="how">
+  <div class="alt-inner">
+    <div class="sec-header">
+      <div class="label">Comment ça marche</div>
+      <h2>Quatre rôles, un objectif</h2>
+      <p>Que vous soyez administrateur, formateur, étudiant ou gestionnaire documentaire, la plateforme s'adapte.</p>
+    </div>
+    <div class="personas">
+      <div class="persona">
+        <div class="persona-header"><div class="avatar" style="background:rgba(139,92,246,.1)">🛠️</div><div class="info"><h3>Administrateur</h3><span>Gestion de la plateforme</span></div></div>
+        <div class="persona-body"><ul>
+          <li>Paramétrez l'identité de l'entreprise (nom, logo, couleurs)</li>
+          <li>Créez les utilisateurs ou importez-les par CSV</li>
+          <li>Gérez les groupes, formations et documents séparément</li>
+          <li>Validez les inscriptions en ligne (activation des comptes)</li>
+          <li>Configurez l'agent IA (clé API, modèle, system prompt)</li>
+          <li>Backup/restore XML, dashboard technique, audit</li>
+        </ul></div>
+      </div>
+      <div class="persona">
+        <div class="persona-header"><div class="avatar" style="background:rgba(66,133,244,.1)">👨‍🏫</div><div class="info"><h3>Formateur</h3><span>Création &amp; publication</span></div></div>
+        <div class="persona-body"><ul>
+          <li>Créez un cours avec l'agent IA intégré (Claude) en quelques clics</li>
+          <li>Ou uploadez un bundle HTML/ZIP existant</li>
+          <li>Prévisualisez le résultat avant publication</li>
+          <li>Publiez formations ou documents, assignez aux groupes</li>
+          <li>Consultez les résultats QCM de vos étudiants</li>
+          <li>Mettez à jour vos contenus (backup auto + rollback)</li>
+        </ul></div>
+      </div>
+      <div class="persona">
+        <div class="persona-header"><div class="avatar" style="background:rgba(34,197,94,.1)">🎓</div><div class="info"><h3>Étudiant</h3><span>Apprentissage &amp; validation</span></div></div>
+        <div class="persona-body"><ul>
+          <li>Inscrivez-vous en ligne ou avec Google / Microsoft</li>
+          <li>Accédez aux formations de votre groupe</li>
+          <li>Parcourez les cours interactifs à votre rythme</li>
+          <li>Passez les QCMs de validation (anti-triche intégré)</li>
+          <li>Consultez vos scores et votre progression</li>
+          <li>Accédez à la bibliothèque documentaire</li>
+        </ul></div>
+      </div>
+      <div class="persona">
+        <div class="persona-header"><div class="avatar" style="background:rgba(234,179,8,.1)">📄</div><div class="info"><h3>GED</h3><span>Gestionnaire documentaire</span></div></div>
+        <div class="persona-body"><ul>
+          <li>Accédez aux documents publiés dans vos groupes</li>
+          <li>Recherchez dans la bibliothèque (recherche full-text)</li>
+          <li>Consultez guides, procédures et références techniques</li>
+          <li>Rôle dédié aux collaborateurs hors formation</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORMATIONS CATALOG -->
+<section id="catalog">
+  <div class="sec-header">
+    <div class="label">Nos formations</div>
+    <h2>📚 Catalogue des formations</h2>
+    <p>Cours interactifs avec QCMs de validation. Connectez-vous pour y accéder.</p>
+  </div>
+  <div class="catalog-grid" id="catalogGrid">
+    <div class="catalog-empty">Chargement des formations...</div>
+  </div>
+</section>
+
+<!-- DOCUMENTS CATALOG -->
+<section class="alt" id="documents">
+  <div class="alt-inner">
+    <div class="sec-header">
+      <div class="label">Bibliothèque</div>
+      <h2>📄 Documents & Ressources</h2>
+      <p>Guides, références techniques, dossiers d'architecture. Accessibles avec un compte GED ou Étudiant.</p>
+    </div>
+    <div class="catalog-grid" id="docsGrid">
+      <div class="catalog-empty">Chargement des documents...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="alt" id="about">
+  <div class="alt-inner">
+    <div class="sec-header">
+      <div class="label">À propos</div>
+      <h2 id="aboutTitle">Notre mission</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text">
+        <h3 id="aboutName">LMS Platform</h3>
+        <p id="aboutDesc">Plateforme de formation professionnelle en ligne.</p>
+        <div class="about-contact" id="aboutContact"></div>
+      </div>
+      <div class="about-card">
+        <h4>🎯 Notre mission</h4>
+        <p id="aboutMission">Démocratiser l'accès à la formation technique de qualité.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="inner">
+    <div>
+      <h4 id="footerName">LMS Platform</h4>
+      <p>Plateforme de formation professionnelle auto-hébergée. Jakarta EE 10, Apache Tomcat, H2 Database.</p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <a href="#features">Fonctionnalités</a>
+      <a href="#how">Comment ça marche</a>
+      <a href="#catalog">Formations</a>
+      <a href="#documents">Documents</a>
+      <a href="#about">À propos</a>
+    </div>
+    <div>
+      <h4>Accès</h4>
+      <a href="login.html">Se connecter</a>
+      <a href="login.html" id="footerRegister">S'inscrire</a>
+    </div>
+  </div>
+  <div class="copy" id="footerCopy">© 2026 LMS Platform — Tous droits réservés</div>
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+
+async function init(){
+  try{
+    const [settings, company, catalog, docs] = await Promise.all([
+      fetch('api/auth/settings').then(r=>r.json()),
+      fetch('api/public/company').then(r=>r.json()),
+      fetch('api/public/catalog').then(r=>r.json()),
+      fetch('api/public/documents').then(r=>r.json())
+    ]);
+
+    const name = settings.platformName || 'LMS Platform';
+    const color = settings.primaryColor || '#4285f4';
+
+    // Branding
+    document.title = name + ' — Accueil';
+    document.documentElement.style.setProperty('--primary', color);
+    $('navName').textContent = name;
+    $('heroName').textContent = name;
+    $('footerName').textContent = name;
+    $('aboutName').textContent = name;
+    $('footerCopy').textContent = '© ' + new Date().getFullYear() + ' ' + name + ' — Tous droits réservés';
+
+    if(settings.logoUrl){
+      $('navLogo').src = settings.logoUrl;
+      $('navLogo').style.display = '';
+    }
+
+    // Registration link
+    if(settings.registrationEnabled){
+      $('registerLink').style.display = '';
+    }
+
+    // Company info
+    if(company.companyDescription)$('heroDesc').textContent = company.companyDescription;
+    if(company.companyDescription)$('aboutDesc').textContent = company.companyDescription;
+    if(company.companyMission)$('aboutMission').textContent = company.companyMission;
+    if(company.companyContact){
+      const c = company.companyContact;
+      $('aboutContact').innerHTML = c.includes('@')
+        ? '📧 <a href="mailto:'+c+'">'+c+'</a>'
+        : '📞 '+c;
+    }
+
+    // Hero stats
+    let statsHtml = `<div class="stat-item"><div class="num">${catalog.length}</div><div class="label">Formations</div></div>`;
+    if(docs.length) statsHtml += `<div class="stat-item"><div class="num">${docs.length}</div><div class="label">Documents</div></div>`;
+    const totalQuiz = catalog.filter(c=>c.quizEnabled).length;
+    if(totalQuiz) statsHtml += `<div class="stat-item"><div class="num">${totalQuiz}</div><div class="label">QCMs</div></div>`;
+    const totalQ = catalog.reduce((s,c)=>s+c.questionsCount,0);
+    if(totalQ) statsHtml += `<div class="stat-item"><div class="num">${totalQ}</div><div class="label">Questions</div></div>`;
+    $('heroStats').innerHTML = statsHtml;
+
+    // Formations catalog
+    renderCatalog(catalog, 'catalogGrid', 'formation');
+    // Documents catalog
+    renderCatalog(docs, 'docsGrid', 'document');
+
+  }catch(e){
+    console.error('Init error:', e);
+    $('catalogGrid').innerHTML = '<div class="catalog-empty">Impossible de charger le catalogue.</div>';
+    $('docsGrid').innerHTML = '<div class="catalog-empty">Impossible de charger les documents.</div>';
+  }
+}
+
+function renderCatalog(courses, gridId, type){
+  const grid = $(gridId);
+  if(!courses.length){
+    const label = type === 'document' ? 'Aucun document publié pour le moment.' : 'Aucune formation publiée pour le moment.';
+    grid.innerHTML = `<div class="catalog-empty">${label}</div>`;
+    return;
+  }
+  grid.innerHTML = courses.map(c => {
+    const isDoc = (c.contentType === 'DOCUMENT' || type === 'document');
+    const icon = isDoc ? '📄' : '📚';
+    let tags = '';
+    if(c.level) tags += `<span class="tag">${c.level}</span>`;
+    if(c.duration) tags += `<span class="tag">⏱ ${c.duration}</span>`;
+    if(c.quizEnabled) tags += `<span class="tag">✅ QCM ${c.questionsCount}q</span>`;
+    if(c.authorName) tags += `<span class="tag">👤 ${c.authorName}</span>`;
+    return `<div class="course-card">
+      <div class="cat">${c.category || (isDoc ? 'Document' : 'Formation')}</div>
+      <h3>${icon} ${c.title}</h3>
+      <div class="desc">${c.description || ''}</div>
+      <div class="meta">${tags}</div>
+    </div>`;
+  }).join('');
+}
+
+// Handle register tab auto-open
+document.querySelectorAll('a[href="login.html"]').forEach(a=>{
+  if(a.id==='registerLink'||a.id==='footerRegister'){
+    a.addEventListener('click',()=>localStorage.setItem('openRegister','1'));
+  }
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const target=document.querySelector(a.getAttribute('href'));
+    if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
+
+// Navbar background on scroll
+window.addEventListener('scroll',()=>{
+  document.querySelector('nav').style.boxShadow = window.scrollY > 10 ? '0 2px 20px rgba(0,0,0,.06)' : 'none';
+});
+
+init();
+</script>
+</body>
+</html>
