@@ -8,20 +8,20 @@ Chaque membre porte **une brique de bout en bout** et la présente à la soutena
 
 | Rôle | Responsable | Construit | Dossiers | Relu par |
 |---|---|---|---|---|
-| **P1 — Chef de projet & infrastructure** | Wawad | Terraform : réseau (VPC, 3 sous-réseaux, NAT, pare-feu), cluster GKE et nodes, Artifact Registry, Secret Manager, 2 VM, comptes de service et IAM, monitoring (avec P4), bucket d'état | `infra/00-bootstrap.sh`, `infra/terraform/`, `README.md`, `docs/` | P4 |
-| **P2 — Plateforme Kubernetes** | _à compléter_ | Namespaces, Ingress GKE (URLs `nip.io`), NetworkPolicy, secrets du cluster, Jenkins (config par fichier + RBAC), SonarQube + PostgreSQL | `k8s/` (sauf `k8s/dev/` et `agent-pod*.yaml`), `scripts/k8s-bootstrap.sh`, `scripts/sonar-setup.sh` | P3 |
-| **P3 — Pipeline & qualité** | _à compléter_ | **Migration MySQL du code**, `Dockerfile`, `Jenkinsfile`, pod agent, job `lms-pipeline`, webhook, Quality Gate, scan Trivy | `src/`, `pom.xml`, `Dockerfile`, `Jenkinsfile`, `k8s/jenkins/agent-pod*.yaml` | P2 |
-| **P4 — VM, déploiement & surveillance** | _à compléter_ | Installation des VM (Java, Tomcat, Apache, **MySQL**, user `deploy`, ops-agent), scripts de déploiement et de rollback, job `lms-rollback`, appli DEV avec MySQL, alertes et tableau de bord (avec P1) | `infra/vm/`, `scripts/deploy*.sh`, `scripts/rollback.sh`, `scripts/remote/`, `k8s/dev/`, `infra/terraform/monitoring.tf` (avec P1) | P1 |
+| **P1 — Chef de projet & infrastructure** | Asma | Terraform : réseau (VPC, 3 sous-réseaux, NAT, pare-feu), cluster GKE et nodes, Artifact Registry, Secret Manager, 2 VM, comptes de service et IAM, monitoring (avec P4), bucket d'état | `infra/00-bootstrap.sh`, `infra/terraform/`, `README.md`, `docs/` | P4 |
+| **P2 — Plateforme Kubernetes** | Jules | Namespaces, Ingress GKE (URLs `nip.io`), NetworkPolicy, secrets du cluster, Jenkins (config par fichier + RBAC), SonarQube + PostgreSQL | `k8s/` (sauf `k8s/dev/` et `agent-pod*.yaml`), `scripts/k8s-bootstrap.sh`, `scripts/sonar-setup.sh` | P3 |
+| **P3 — Pipeline & qualité** | Lamia | **Migration MySQL du code**, `Dockerfile`, `Jenkinsfile`, pod agent, job `lms-pipeline`, webhook, Quality Gate, scan Trivy | `src/`, `pom.xml`, `Dockerfile`, `Jenkinsfile`, `k8s/jenkins/agent-pod*.yaml` | P2 |
+| **P4 — VM, déploiement & surveillance** | Wahid | Installation des VM (Java, Tomcat, Apache, **MySQL**, user `deploy`, ops-agent), scripts de déploiement et de rollback, job `lms-rollback`, appli DEV avec MySQL, alertes et tableau de bord (avec P1) | `infra/vm/`, `scripts/deploy*.sh`, `scripts/rollback.sh`, `scripts/remote/`, `k8s/dev/`, `infra/terraform/monitoring.tf` (avec P1) | P1 |
 
-Les binômes de relecture (P1↔P4, P2↔P3) travaillent sur des sujets voisins : chacun comprend ce qu'il relit.
+Les binômes de relecture (P1↔P4 : Asma ↔ Wahid, P2↔P3 : Jules ↔ Lamia) travaillent sur des sujets voisins : chacun comprend ce qu'il relit.
 
 ## Responsabilités transverses
 
 | Responsabilité | Titulaire | Remplaçant / règle |
 |---|---|---|
-| Droits IAM | P1 | P2. Une demande de droit = une Issue |
+| Droits IAM | P1 (Asma) | P2 (Jules). Une demande de droit = une Issue |
 | Relecture des Pull Requests | Le binôme | P1 relit en plus tout ce qui touche l'infra, l'IAM et la PROD |
-| Validation de la mise en PROD (Jenkins) | P1 | P3 (`input submitter: 'p1,p3'` avec les identifiants Jenkins réels) |
+| Validation de la mise en PROD (Jenkins) | P1 (Asma) | P3 (Lamia) (`input submitter: 'p1,p3'` avec les identifiants Jenkins réels) |
 | Coûts (extinction le soir) | P1 | Le dernier qui part |
 | Rapport et soutenance | Chacun sa section + son runbook | P1 assemble, harmonise et anime |
 
@@ -74,7 +74,7 @@ L'énoncé découpe le projet en 4 jours. Ici, pas de date imposée : ces 4 jour
 
 ---
 
-## P1 — Chef de projet & infrastructure
+## P1 — Chef de projet & infrastructure · Asma
 
 **Mission :** une infrastructure entièrement décrite en Terraform, recréable de zéro, et une équipe qui n'est jamais bloquée par un droit manquant.
 
@@ -103,7 +103,7 @@ gcloud container clusters resize lms-cluster --num-nodes=0 --zone=europe-west1-b
 
 ---
 
-## P2 — Plateforme Kubernetes
+## P2 — Plateforme Kubernetes · Jules
 
 **Mission :** un cluster organisé, sécurisé et outillé (Jenkins, SonarQube) installable en une commande.
 
@@ -132,7 +132,7 @@ kubectl -n dev run test --rm -it --image=busybox --restart=Never -- wget -T 3 -q
 
 ---
 
-## P3 — Pipeline & qualité
+## P3 — Pipeline & qualité · Lamia
 
 **Mission :** l'application tourne sur MySQL, et un `git push` sur `develop` la livre jusqu'à STAGING sans intervention.
 
@@ -162,7 +162,7 @@ trivy image --severity CRITICAL --exit-code 1 europe-west1-docker.pkg.dev/format
 
 ---
 
-## P4 — VM, déploiement & surveillance
+## P4 — VM, déploiement & surveillance · Wahid
 
 **Mission :** des serveurs prêts à recevoir chaque version, un retour arrière en une commande, et une alerte quand ça casse.
 

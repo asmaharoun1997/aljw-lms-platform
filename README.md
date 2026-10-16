@@ -111,9 +111,9 @@ flowchart LR
 
 | Responsabilité | Titulaire | Remplaçant / règle |
 |---|---|---|
-| Droits IAM | P1 | P2 (personne ne doit être bloqué par une absence) |
-| Relecture des Pull Requests | Binômes P1↔P4, P2↔P3 | P1 relit en plus tout ce qui touche l'infra et la PROD |
-| Validation de la mise en PROD (Jenkins) | P1 | P3 (`input submitter: 'p1,p3'`) |
+| Droits IAM | P1 (Asma) | P2 (Jules) — personne ne doit être bloqué par une absence |
+| Relecture des Pull Requests | Binômes Asma ↔ Wahid (P1↔P4), Jules ↔ Lamia (P2↔P3) | P1 relit en plus tout ce qui touche l'infra et la PROD |
+| Validation de la mise en PROD (Jenkins) | P1 (Asma) | P3 (Lamia) — `input submitter` |
 | Documentation | Chacun : README de son dossier + runbook | P1 assemble le rapport et anime la soutenance |
 
 Chaque rôle a un **livrable de preuve** : 3 corrections SonarQube + tests + rapport Trivy (P3),
