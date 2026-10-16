@@ -1,7 +1,8 @@
 # Journal des décisions
 
 Toute décision technique qui engage l'équipe et qui serait difficile à défaire ou surprenante sans contexte.
-Une ligne par décision, la plus récente en bas. Tenu par **A** ; chacun peut proposer une ligne par Pull Request.
+Une ligne par décision, la plus récente en bas. Tenu par **P1** ; chacun peut proposer une ligne par Pull Request.
+Les décisions 1 à 7 ont été prises avec l'ancien découpage A–D : A = P1, B = P2/P3, C = P3/P4, D = P4.
 
 | # | Date | Décision | Alternatives écartées | Raison | Rôle concerné |
 |---|---|---|---|---|---|

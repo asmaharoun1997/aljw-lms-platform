@@ -1,7 +1,7 @@
 ---
 name: Tâche
 about: Une tâche du plan d'équipe
-title: "[A/B/C/D] "
+title: "[P1/P2/P3/P4] "
 labels: ""
 assignees: ""
 ---

@@ -111,9 +111,9 @@ flowchart LR
 
 | Responsabilité | Titulaire | Remplaçant / règle |
 |---|---|---|
-| Droits IAM | P1 | P2 (personne ne doit être bloqué par une absence) |
-| Relecture des Pull Requests | Binômes P1↔P4, P2↔P3 | P1 relit en plus tout ce qui touche l'infra et la PROD |
-| Validation de la mise en PROD (Jenkins) | P1 | P3 (`input submitter: 'p1,p3'`) |
+| Droits IAM | P1 (Asma) | P2 (Jules) — personne ne doit être bloqué par une absence |
+| Relecture des Pull Requests | Binômes Asma ↔ Wahid (P1↔P4), Jules ↔ Lamia (P2↔P3) | P1 relit en plus tout ce qui touche l'infra et la PROD |
+| Validation de la mise en PROD (Jenkins) | P1 (Asma) | P3 (Lamia) — `input submitter` |
 | Documentation | Chacun : README de son dossier + runbook | P1 assemble le rapport et anime la soutenance |
 
 Chaque rôle a un **livrable de preuve** : 3 corrections SonarQube + tests + rapport Trivy (P3),
@@ -143,7 +143,7 @@ Chaque rôle a un **livrable de preuve** : 3 corrections SonarQube + tests + rap
 ├── scripts/
 │   ├── k8s-bootstrap.sh       # Installation de la plateforme K8s       (P2)
 │   ├── sonar-setup.sh         # Projet, token, Quality Gate             (P2)
-│   ├── deploy*.sh             # Déploiement sur les VM                  (P4)
+│   ├── deploy.sh              # Déploiement sur les VM                  (P4)
 │   ├── rollback.sh            # Retour arrière sur les VM               (P4)
 │   └── remote/                # Scripts exécutés sur les VM             (P4)
 ├── docs/                      # Plan, architecture, décisions, runbooks, rapport (chacun, P1 assemble)
@@ -217,7 +217,7 @@ docker build -t lms-platform:local .
 |---|---|
 | [`docs/architecture.md`](docs/architecture.md) | Schéma et flux réseau |
 | [`docs/decisions.md`](docs/decisions.md) | Journal des décisions techniques |
-| [`docs/runbooks/`](docs/runbooks/) | Créer, vérifier, dépanner chaque brique + journal des difficultés |
+| [`docs/runbooks/`](docs/runbooks/) | Un runbook par rôle (`p1-infra.md` … `p4-vm.md`) + journal des difficultés |
 | [`docs/rapport/rapport.md`](docs/rapport/rapport.md) | Rapport de synthèse (squelette, qui rédige quoi) |
 | [`docs/ADAPTATIONS.md`](docs/ADAPTATIONS.md) | Écarts entre l'énoncé et le code |
 
@@ -230,8 +230,8 @@ feature/<rôle>-<sujet>  ──PR──▶  develop  ──PR──▶  main
 ```
 
 1. Partir de `develop` à jour : `git checkout develop && git pull`
-2. Créer sa branche : `git checkout -b feature/infra-vpc`
-3. Pousser : `git push -u origin feature/infra-vpc`
+2. Créer sa branche : `git checkout -b feature/infra-reseau` (préfixes dans `CONVENTIONS.md`)
+3. Pousser : `git push -u origin feature/infra-reseau`
 4. Ouvrir une Pull Request vers `develop`, relue par son binôme
 5. Ne jamais pousser directement sur `main` ni sur `develop`
 

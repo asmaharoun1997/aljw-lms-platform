@@ -4,10 +4,10 @@ Un runbook par brique, écrit et tenu à jour par son responsable.
 
 | Runbook | Responsable |
 |---|---|
-| [`plateforme.md`](plateforme.md) | A |
-| [`ci.md`](ci.md) | B |
-| [`app.md`](app.md) | C |
-| [`vm.md`](vm.md) | D |
+| [`p1-infra.md`](p1-infra.md) | P1 |
+| [`p2-k8s.md`](p2-k8s.md) | P2 |
+| [`p3-pipeline.md`](p3-pipeline.md) | P3 |
+| [`p4-vm.md`](p4-vm.md) | P4 |
 
-Chaque runbook suit la même structure : Prérequis · Créer · Vérifier · Dépanner · Supprimer · Journal des difficultés.
-Le journal se remplit **pendant** le travail, pas à la fin : c'est la matière première du rapport.
+Même structure partout : Prérequis · Créer · Vérifier · Dépanner · Supprimer · Journal des difficultés.
+Le journal se remplit **pendant** le travail : c'est la matière première du rapport.
