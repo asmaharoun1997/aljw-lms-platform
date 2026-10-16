@@ -1,6 +1,6 @@
-# Runbook — VM STAGING & PROD
+# Runbook — Pipeline & qualité
 
-**Responsable :** rôle D · **Périmètre :** VM, Tomcat, Apache, MySQL, scripts de déploiement et rollback
+**Responsable :** P3 · **Périmètre :** migration MySQL, Dockerfile, Jenkinsfile, Cloud Build, Quality Gate, Trivy
 
 > Objectif : un autre membre de l'équipe doit pouvoir recréer, vérifier et réparer cette brique avec ce seul document.
 
@@ -11,7 +11,6 @@
 ## Créer
 
 ```bash
-# commandes dans l'ordre, avec une ligne d'explication si besoin
 ```
 
 ## Vérifier
@@ -33,7 +32,7 @@
 
 ## Journal des difficultés
 
-<!-- À remplir au fil de l'eau : date, problème, cause, solution. Repris dans le rapport final. -->
+<!-- À remplir au fil de l'eau. Repris dans le rapport final. -->
 
 | Date | Problème | Cause | Solution |
 |---|---|---|---|

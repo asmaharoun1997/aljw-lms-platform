@@ -6,10 +6,10 @@ Closes #
 
 ## Rôle
 
-- [ ] A — Plateforme, réseau & documentation
-- [ ] B — CI : Jenkins & qualité
-- [ ] C — Application & conteneur
-- [ ] D — VM STAGING & PROD
+- [ ] P1 — Chef de projet & infrastructure
+- [ ] P2 — Plateforme Kubernetes
+- [ ] P3 — Pipeline & qualité
+- [ ] P4 — VM, déploiement & surveillance
 
 ## Comment c'est testé
 
@@ -19,5 +19,6 @@ Closes #
 
 - [ ] Aucun secret (mot de passe, clé, token) dans les fichiers modifiés
 - [ ] Les noms respectent `CONVENTIONS.md`
-- [ ] Doc de la brique à jour (README du dossier, runbook dans `docs/runbooks/`, journal des difficultés)
+- [ ] Doc de la brique à jour (README du dossier, runbook `docs/runbooks/p<N>-*.md`, journal des difficultés)
+- [ ] Si infra, IAM ou PROD : P1 ajouté en relecteur
 - [ ] La branche cible est `develop`

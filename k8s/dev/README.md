@@ -1,5 +1,7 @@
 # dev/
 
-**Responsable : rôle C.** Environnement DEV : MySQL + LMS (namespace `dev`). Voir [`../README.md`](../README.md).
+**Responsable : P4.** Environnement DEV : MySQL + LMS (namespace `dev`).
 
-La config de l'appli passe par `JAVA_OPTS` (`-Dlms.db.url=...`), alimenté par le Secret `mysql-creds`.
+- `mysql-dev` : Deployment, PVC 5 Go, Service `mysql-dev:3306`, mots de passe dans le Secret `mysql-creds`.
+- `lms-app` : image `lms:<BUILD_NUMBER>`, mise à jour par Jenkins (`kubectl set image`).
+- La config passe par `JAVA_OPTS` (`-Dlms.db.url=...`) : l'appli ne lit pas les variables d'environnement.

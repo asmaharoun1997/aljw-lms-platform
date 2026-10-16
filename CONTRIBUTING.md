@@ -8,8 +8,9 @@ Guide pour un nouveau membre : de zéro à sa première Pull Request.
 |---|---|---|
 | Git | Versionner le code | `git --version` |
 | Google Cloud CLI + `kubectl` + `gke-gcloud-auth-plugin` | Piloter GCP et le cluster | `gcloud --version` · `kubectl version --client` |
+| Terraform (P1 surtout) | Infrastructure as Code | `terraform version` |
 | Docker Desktop | Construire et tester l'image en local | `docker --version` |
-| JDK 21 + Maven 3.9 | Compiler l'application (rôle C surtout) | `java -version` · `mvn -version` |
+| JDK 21 + Maven 3.9 | Compiler l'application (P3 surtout) | `java -version` · `mvn -version` |
 | VS Code | Éditeur | — |
 
 Installer les composants Kubernetes du SDK :
@@ -28,7 +29,7 @@ gcloud config set compute/zone europe-west1-b
 gcloud config list
 ```
 
-Quand le cluster existe (rôle A) :
+Quand le cluster existe (P1) :
 
 ```powershell
 gcloud container clusters get-credentials lms-cluster --zone=europe-west1-b
@@ -58,27 +59,27 @@ git checkout develop
 ```powershell
 git checkout develop
 git pull
-git checkout -b feature/infra-vpc
+git checkout -b feature/infra-reseau
 
 # ... travail ...
 
 git add .
-git commit -m "Créer le VPC et les sous-réseaux"
-git push -u origin feature/infra-vpc
+git commit -m "Ajouter le module réseau Terraform"
+git push -u origin feature/infra-reseau
 ```
 
 Puis sur GitHub : **Compare & pull request**, base `develop`, relecteur = son binôme (voir le plan).
 
 | Règle | Détail |
 |---|---|
-| Branche | `feature/<rôle>-<sujet>` : `infra`, `ci`, `app`, `vm` |
+| Branche | `feature/infra-…` (P1), `feature/k8s-…` (P2), `feature/pipeline-…` / `feature/app-…` (P3), `feature/vm-…` (P4) |
 | Commit | Verbe à l'infinitif + quoi, en français : `Ajouter le Dockerfile` |
-| Pull Request | Petite, un seul sujet, relue avant le merge |
+| Pull Request | Petite, un seul sujet, relue par son binôme (P1↔P4, P2↔P3) ; P1 en plus pour l'infra, l'IAM et la PROD |
 | `main` et `develop` | Jamais de push direct |
 | Conflit | `git pull origin develop` sur sa branche, résoudre, re-pousser |
 | Documentation | Mettre à jour le README du dossier et son runbook (`docs/runbooks/`) **dans la même PR** |
 
-Une tâche = une **Issue GitHub** assignée à son responsable. Mentionner l'issue dans la PR (`Closes #12`).
+Une tâche = une **Issue GitHub** préfixée `[P1]`…`[P4]`, assignée à son responsable. Mentionner l'issue dans la PR (`Closes #12`).
 
 ## 6. Secrets : la règle absolue
 
@@ -86,18 +87,19 @@ Aucun mot de passe, clé SSH, token ou fichier de compte de service dans Git. Ja
 
 | Secret | Où il vit |
 |---|---|
-| Mots de passe MySQL DEV | Secret Kubernetes `mysql-creds` |
-| Mots de passe MySQL / admin sur les VM | `/opt/tomcat/bin/setenv.sh`, droits 600 |
-| Clés SSH de déploiement, token SonarQube | Credentials Jenkins |
+| Tous les secrets du projet | **Secret Manager** (source de vérité, voir `CONVENTIONS.md`) |
+| Mots de passe MySQL DEV | Secret Kubernetes `mysql-creds`, créé depuis Secret Manager |
+| Mots de passe sur les VM | Lus dans Secret Manager par `setenv.sh` au démarrage de Tomcat |
+| Clé SSH de déploiement, token SonarQube | Credentials Jenkins, alimentés depuis Secret Manager |
 
 Un secret poussé par erreur est considéré comme **compromis** : le changer immédiatement. Le supprimer du dernier commit ne suffit pas, il reste dans l'historique.
 
 ## 7. Coûts
 
-Le projet GCP est partagé et payant. Chaque ressource créée porte le libellé `equipe=lms`.
+Le projet GCP est partagé et payant. Une demande de droit IAM = une Issue assignée à P1. Chaque ressource créée porte le libellé `equipe=lms`.
 
 ```powershell
-# Fin de session (rôle A, ou le dernier qui part)
+# Fin de session (P1, ou le dernier qui part)
 gcloud container clusters resize lms-cluster --num-nodes=0 --zone=europe-west1-b --quiet
 gcloud compute instances stop lms-staging lms-prod --zone=europe-west1-b
 

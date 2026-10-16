@@ -1,22 +1,18 @@
 # k8s/ — Manifests Kubernetes
 
-| Dossier / fichier | Contenu | Rôle |
+| Chemin | Contenu | Responsable |
 |---|---|---|
-| `namespaces.yaml` | Namespaces `cicd`, `quality`, `dev` | A |
-| `jenkins/` | PVC 10 Go, Deployment, Service (+ Ingress si webhook), RBAC de l'agent | B |
-| `sonarqube/` | PVC 5 Go, Deployment, Service | B |
-| `dev/` | MySQL (PVC, Deployment, Service), LMS (Deployment `lms-app`, Service, Ingress) | C |
+| `namespaces.yaml` | `cicd`, `quality`, `dev` | P2 |
+| [`ingress/`](ingress/) | Ingress GKE, URLs `nip.io` | P2 |
+| [`network-policies/`](network-policies/) | Qui peut parler à qui | P2 |
+| [`jenkins/`](jenkins/) | Jenkins, config par fichier, RBAC | P2 |
+| `jenkins/agent-pod*.yaml` | Pod agent du pipeline | P3 |
+| [`sonarqube/`](sonarqube/) | SonarQube + PostgreSQL | P2 |
+| [`dev/`](dev/) | LMS + MySQL en DEV | P4 |
 
-Appliquer un dossier :
-
-```bash
-kubectl apply -f k8s/namespaces.yaml
-kubectl apply -f k8s/jenkins/
-kubectl -n cicd get all
-```
+Installation complète : `scripts/k8s-bootstrap.sh` (P2).
 
 Règles :
-- Chaque manifest précise son `namespace`
-- **Aucun `Secret` avec des valeurs dans Git** : les secrets se créent en ligne de commande
-  (`kubectl create secret generic ...`). Seule la référence (`secretKeyRef`) est versionnée
-- Images versionnées (`lms:<BUILD_NUMBER>`, `jenkins/jenkins:lts-jdk21`), pas de `latest` pour l'appli
+- Chaque manifest précise son `namespace`.
+- **Aucun `Secret` avec des valeurs dans Git** : les secrets sont créés par `k8s-bootstrap.sh` à partir de Secret Manager. Seule la référence (`secretKeyRef`) est versionnée.
+- Images versionnées, pas de `latest` pour l'application.

@@ -1,6 +1,6 @@
-# Runbook — Plateforme & réseau
+# Runbook — Infrastructure (Terraform)
 
-**Responsable :** rôle A · **Périmètre :** VPC, firewall, NAT, cluster GKE, Artifact Registry, monitoring
+**Responsable :** P1 · **Périmètre :** réseau, GKE, Artifact Registry, Secret Manager, VM, IAM, monitoring
 
 > Objectif : un autre membre de l'équipe doit pouvoir recréer, vérifier et réparer cette brique avec ce seul document.
 
@@ -11,7 +11,6 @@
 ## Créer
 
 ```bash
-# commandes dans l'ordre, avec une ligne d'explication si besoin
 ```
 
 ## Vérifier
@@ -33,7 +32,7 @@
 
 ## Journal des difficultés
 
-<!-- À remplir au fil de l'eau : date, problème, cause, solution. Repris dans le rapport final. -->
+<!-- À remplir au fil de l'eau. Repris dans le rapport final. -->
 
 | Date | Problème | Cause | Solution |
 |---|---|---|---|
