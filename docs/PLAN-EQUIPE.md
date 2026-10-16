@@ -8,7 +8,7 @@ Les noms et valeurs partagés sont dans [`CONVENTIONS.md`](../CONVENTIONS.md).
 
 | Rôle | Responsable | Périmètre | Dossiers | Relu par |
 |---|---|---|---|---|
-| **A — Plateforme & réseau** | _à compléter_ | VPC, firewall, NAT, GKE, Artifact Registry, IaC, monitoring, sécurité GKE | `infra/`, `k8s/namespaces.yaml` | D |
+| **A — Plateforme, réseau & documentation** | _à compléter_ | VPC, firewall, NAT, GKE, Artifact Registry, IaC, monitoring, sécurité GKE + **responsable documentation** | `infra/`, `k8s/namespaces.yaml`, `docs/` | D |
 | **B — CI : Jenkins & qualité** | _à compléter_ | Jenkins sur GKE, SonarQube, Jenkinsfile, webhook | `k8s/jenkins/`, `k8s/sonarqube/`, `Jenkinsfile` | C |
 | **C — Application & conteneur** | _à compléter_ | Migration MySQL du code, Dockerfile, environnement DEV, tests | `src/`, `pom.xml`, `Dockerfile`, `k8s/dev/` | B |
 | **D — VM STAGING & PROD** | _à compléter_ | 2 VM Rocky 9 (Tomcat, Apache, MySQL), scripts deploy/rollback | `scripts/`, `infra/vm-*.sh` | A |
@@ -39,14 +39,32 @@ L'énoncé découpe le projet en 4 jours. Ici, pas de date imposée : on garde c
 
 | Phase | A — Plateforme | B — CI | C — Application | D — VM |
 |---|---|---|---|---|
-| **1 · Socle** | Réseau, NAT, cluster, registry, script IaC | Manifests Jenkins + Sonar (local) | Migration MySQL, Dockerfile (local) | VM créées, Java/Tomcat/Apache/MySQL |
-| **2 · Intégration continue** | Aide B pour les droits GKE ↔ registry | Jenkins + Sonar déployés, pipeline jusqu'au DEV | MySQL + LMS en DEV sur GKE | WAR déployé à la main sur STAGING, HTTPS |
-| **3 · Livraison** | Monitoring, uptime checks, alertes | Stages STAGING/PROD, Quality Gate | Corriger 3 issues Sonar, tests | Scripts deploy/rollback, test de rollback |
-| **4 · Sécurité & doc** | NetworkPolicy, RBAC, Trivy, coûts | Durcissement Jenkins, secrets | Secrets K8s, image minimale | Durcissement Tomcat/MySQL/SSH |
+| **1 · Socle** | Réseau, NAT, cluster, registry, script IaC · *Doc : schéma, squelette du rapport* | Manifests Jenkins + Sonar (local) | Migration MySQL, Dockerfile (local) | VM créées, Java/Tomcat/Apache/MySQL |
+| **2 · Intégration continue** | Aide B pour les droits GKE ↔ registry · *Doc : pipeline, contrôle des runbooks* | Jenkins + Sonar déployés, pipeline jusqu'au DEV | MySQL + LMS en DEV sur GKE | WAR déployé à la main sur STAGING, HTTPS |
+| **3 · Livraison** | Monitoring, uptime checks, alertes · *Doc : rapport Sonar, procédure rollback* | Stages STAGING/PROD, Quality Gate | Corriger 3 issues Sonar, tests | Scripts deploy/rollback, test de rollback |
+| **4 · Sécurité & doc** | NetworkPolicy, RBAC, Trivy, coûts · *Doc : rapport final, support de démo* | Durcissement Jenkins, secrets | Secrets K8s, image minimale | Durcissement Tomcat/MySQL/SSH |
+
+## Documentation : qui écrit quoi
+
+La documentation suit le principe **« docs as code »** : elle vit dans le repo, et celui qui construit une brique la documente.
+Un rôle ne s'occupe pas seul de la doc : chacun écrit la sienne, **A** tient la structure, la cohérence et le rapport final.
+
+| Qui | Écrit | Où |
+|---|---|---|
+| **Chaque responsable** | README de son dossier (fichiers, comment les appliquer) | `infra/`, `k8s/…`, `scripts/` |
+| **Chaque responsable** | Runbook de sa brique : créer, vérifier, dépanner, supprimer | `docs/runbooks/<brique>.md` |
+| **Chaque responsable** | Difficultés rencontrées et solutions, **au fil de l'eau** | Section « Journal » de son runbook |
+| **Chaque responsable** | Captures d'écran de sa partie | `docs/rapport/captures/` |
+| **Chaque responsable** | Sa section du rapport final | `docs/rapport/rapport.md` |
+| **A (responsable doc)** | Schéma d'architecture | `docs/architecture.md` |
+| **A (responsable doc)** | Journal des décisions | `docs/decisions.md` |
+| **A (responsable doc)** | Assemblage, harmonisation et relecture du rapport, support de démo | `docs/rapport/` |
+
+**Règle :** une Pull Request qui change le fonctionnement d'une brique n'est pas mergée si la doc de cette brique n'est pas à jour (case à cocher dans le modèle de PR).
 
 ---
 
-## A — Plateforme & réseau
+## A — Plateforme, réseau & documentation
 
 **Mission :** fournir à l'équipe un réseau et un cluster prêts à l'emploi, reproductibles par script.
 
@@ -57,6 +75,7 @@ L'énoncé découpe le projet en 4 jours. Ici, pas de date imposée : on garde c
 - Le script IaC qui recrée l'infrastructure de zéro
 - Le monitoring et les alertes
 - **Les coûts** : extinction du cluster et des VM quand personne ne travaille
+- **La documentation d'ensemble** : schéma d'architecture, journal des décisions, rapport final, support de démo
 
 **Tâches**
 - [ ] P1 — Créer le VPC `lms-vpc` et les 3 sous-réseaux (avec les plages secondaires pods/services)
@@ -65,9 +84,13 @@ L'énoncé découpe le projet en 4 jours. Ici, pas de date imposée : on garde c
 - [ ] P1 — Créer le cluster `lms-cluster` et les namespaces `cicd`, `quality`, `dev`
 - [ ] P1 — Créer le dépôt `lms-docker` dans Artifact Registry
 - [ ] P1 — Écrire `infra/network.sh`, `infra/gke-cluster.sh`, `infra/registry.sh` et `infra/destroy.sh`
+- [ ] P1 — *Doc* : compléter `docs/architecture.md` (schéma réseau + flux), tenir `docs/decisions.md` à jour
+- [ ] P2 — *Doc* : documenter le pipeline étape par étape avec B, vérifier que chaque brique a son runbook
 - [ ] P3 — Uptime checks sur STAGING et PROD, alertes mail (health check KO, CPU > 80 %)
+- [ ] P3 — *Doc* : rapport SonarQube (avec B) et procédure de rollback testée (avec D)
 - [ ] P4 — NetworkPolicy entre namespaces, RBAC, scan Trivy des images
 - [ ] P4 — Estimation des coûts réels pour le rapport
+- [ ] P4 — *Doc* : assembler et relire `docs/rapport/rapport.md`, préparer le support de démo, mettre à jour le README
 
 **Comment, en bref**
 ```bash
@@ -80,7 +103,7 @@ gcloud container clusters create lms-cluster --zone=europe-west1-b --num-nodes=2
 gcloud container clusters resize lms-cluster --num-nodes=0 --zone=europe-west1-b   # le soir
 ```
 
-**Terminé quand :** `kubectl get ns` affiche les 3 namespaces, chaque membre a fait `get-credentials`, et `infra/destroy.sh` puis les scripts de création recréent tout sans erreur.
+**Terminé quand :** `kubectl get ns` affiche les 3 namespaces, chaque membre a fait `get-credentials`, et `infra/destroy.sh` puis les scripts de création recréent tout sans erreur. Côté doc : le rapport est complet, relu, et chaque runbook permet à un autre membre de refaire la brique seul.
 
 ---
 
@@ -195,6 +218,7 @@ sudo systemctl enable --now mysqld httpd
 
 - [ ] P1 — Chacun : accès au projet `formation-equipe`, `gcloud` configuré en `europe-west1`
 - [ ] P1 — Chacun : `kubectl get pods -A` fonctionne
+- [ ] P1 → P4 — Chacun : runbook de sa brique tenu à jour dans `docs/runbooks/`, journal des difficultés compris
 - [ ] P4 — Chacun : sa partie du rapport (architecture de sa brique, choix, difficultés et solutions)
 - [ ] P4 — Ensemble : répétition de la démo complète, de `git push` jusqu'au rollback
 - [ ] Fin — `infra/destroy.sh` : tout supprimer pour arrêter la facturation
@@ -203,5 +227,5 @@ sudo systemctl enable --now mysqld httpd
 
 - **Une tâche = une Issue GitHub**, assignée à son responsable, dans le tableau du projet (À faire / En cours / Fait).
 - **Point de 10 minutes par jour** : ce que j'ai fini, ce que je fais, ce qui me bloque.
-- **Une Pull Request par sujet**, petite, relue par le binôme avant le merge dans `develop`.
+- **Une Pull Request par sujet**, petite, relue par le binôme avant le merge dans `develop`, **doc de la brique à jour**.
 - **Un blocage de plus de 30 minutes** se signale au groupe : c'est souvent une dépendance vers un autre rôle.
