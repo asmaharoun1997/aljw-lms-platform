@@ -68,7 +68,7 @@ flowchart LR
 
 | Rôle | Responsable | Périmètre |
 |---|---|---|
-| A — Plateforme & réseau | _à compléter_ | VPC, firewall, NAT, GKE, Artifact Registry, IaC, monitoring |
+| A — Plateforme, réseau & documentation | _à compléter_ | VPC, firewall, NAT, GKE, Artifact Registry, IaC, monitoring + responsable documentation |
 | B — CI : Jenkins & qualité | _à compléter_ | Jenkins, SonarQube, Jenkinsfile, webhook |
 | C — Application & conteneur | _à compléter_ | Migration MySQL, Dockerfile, environnement DEV |
 | D — VM STAGING & PROD | _à compléter_ | VM, Tomcat, Apache, MySQL, scripts de déploiement et rollback |
@@ -88,10 +88,22 @@ flowchart LR
 │   └── dev/              # LMS + MySQL, ConfigMap, Ingress
 ├── infra/                # Scripts gcloud : réseau, GKE, VM
 ├── scripts/              # deploy-staging.sh, deploy-prod.sh, rollback.sh
-├── docs/                 # Plan d'équipe, adaptations, doc de l'appli, rapport
+├── docs/                 # Plan d'équipe, architecture, décisions, runbooks, rapport
 ├── CONTRIBUTING.md       # Démarrage d'un nouveau membre, workflow Git
 └── CONVENTIONS.md        # Noms et valeurs communes à toute l'équipe
 ```
+
+## Documentation
+
+Chacun documente sa brique (README de son dossier + runbook), **A** tient l'ensemble et le rapport final.
+
+| Document | Contenu |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | Schéma et flux réseau |
+| [`docs/decisions.md`](docs/decisions.md) | Journal des décisions techniques |
+| [`docs/runbooks/`](docs/runbooks/) | Créer, vérifier, dépanner chaque brique + journal des difficultés |
+| [`docs/rapport/rapport.md`](docs/rapport/rapport.md) | Rapport de synthèse (squelette, qui rédige quoi) |
+| [`docs/ADAPTATIONS.md`](docs/ADAPTATIONS.md) | Écarts entre l'énoncé et le code |
 
 ## Workflow Git
 

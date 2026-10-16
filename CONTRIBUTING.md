@@ -51,6 +51,7 @@ git checkout develop
 1. [`docs/PLAN-EQUIPE.md`](docs/PLAN-EQUIPE.md) : son rôle, ses tâches, de qui on dépend
 2. [`CONVENTIONS.md`](CONVENTIONS.md) : les noms à utiliser (ne pas en inventer)
 3. [`docs/ADAPTATIONS.md`](docs/ADAPTATIONS.md) : les pièges de l'énoncé déjà identifiés
+4. [`docs/runbooks/`](docs/runbooks/) : le runbook de sa brique, à remplir au fil du travail
 
 ## 5. Le cycle de travail
 
@@ -75,6 +76,7 @@ Puis sur GitHub : **Compare & pull request**, base `develop`, relecteur = son bi
 | Pull Request | Petite, un seul sujet, relue avant le merge |
 | `main` et `develop` | Jamais de push direct |
 | Conflit | `git pull origin develop` sur sa branche, résoudre, re-pousser |
+| Documentation | Mettre à jour le README du dossier et son runbook (`docs/runbooks/`) **dans la même PR** |
 
 Une tâche = une **Issue GitHub** assignée à son responsable. Mentionner l'issue dans la PR (`Closes #12`).
 
