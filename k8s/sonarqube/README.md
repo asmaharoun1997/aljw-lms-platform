@@ -1,5 +1,6 @@
 # sonarqube/
 
-**Responsable : rôle B.** Manifests SonarQube (namespace `quality`). Voir [`../README.md`](../README.md).
+**Responsable : P2.** SonarQube + PostgreSQL (namespace `quality`).
 
-SonarQube demande `vm.max_map_count >= 524288` sur les nodes (initContainer privilégié ou DaemonSet).
+- SonarQube demande `vm.max_map_count >= 524288` sur les nodes (initContainer privilégié ou DaemonSet).
+- Projet, token et Quality Gate : `scripts/sonar-setup.sh`.
