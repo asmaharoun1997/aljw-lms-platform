@@ -102,10 +102,10 @@ flowchart LR
 
 | Rôle | Responsable | Construit | Démo |
 |---|---|---|---|
-| **P1 — Chef de projet & infrastructure** | Wawad | Terraform : réseau (VPC, 3 sous-réseaux, NAT, pare-feu), cluster GKE et nodes, Artifact Registry, Secret Manager, les 2 VM, monitoring, bucket d'état | `terraform plan` propre, infra recréée de zéro |
-| **P2 — Plateforme Kubernetes** | _à compléter_ | Namespaces, Ingress GKE, NetworkPolicy, secrets du cluster, Jenkins (config par fichier + RBAC), SonarQube + PostgreSQL | `kubectl get pods -A`, pod supprimé qui revient, DEV qui ne joint pas Jenkins |
-| **P3 — Pipeline & qualité** | _à compléter_ | **Migration MySQL du code**, `Jenkinsfile`, `Dockerfile`, pod agent (maven, gcloud, trivy), job Jenkins, webhook, Quality Gate, scan Trivy | Push en direct, étapes qui s'enchaînent, Quality Gate |
-| **P4 — VM, déploiement & surveillance** | _à compléter_ | Installation des VM (`bootstrap.sh` : Java, Tomcat, Apache, **MySQL**, user `deploy`, ops-agent), scripts de déploiement et de rollback, job `lms-rollback`, appli DEV (`k8s/dev/` avec MySQL), alertes et tableau de bord | `ls /opt/tomcat/releases`, rollback, tableau de bord, email d'alerte |
+| **P1 — Chef de projet & infrastructure** | Asma | Terraform : réseau (VPC, 3 sous-réseaux, NAT, pare-feu), cluster GKE et nodes, Artifact Registry, Secret Manager, les 2 VM, monitoring, bucket d'état | `terraform plan` propre, infra recréée de zéro |
+| **P2 — Plateforme Kubernetes** | Jules | Namespaces, Ingress GKE, NetworkPolicy, secrets du cluster, Jenkins (config par fichier + RBAC), SonarQube + PostgreSQL | `kubectl get pods -A`, pod supprimé qui revient, DEV qui ne joint pas Jenkins |
+| **P3 — Pipeline & qualité** | Lamia | **Migration MySQL du code**, `Jenkinsfile`, `Dockerfile`, pod agent (maven, gcloud, trivy), job Jenkins, webhook, Quality Gate, scan Trivy | Push en direct, étapes qui s'enchaînent, Quality Gate |
+| **P4 — VM, déploiement & surveillance** | Wahid | Installation des VM (`bootstrap.sh` : Java, Tomcat, Apache, **MySQL**, user `deploy`, ops-agent), scripts de déploiement et de rollback, job `lms-rollback`, appli DEV (`k8s/dev/` avec MySQL), alertes et tableau de bord | `ls /opt/tomcat/releases`, rollback, tableau de bord, email d'alerte |
 
 ### Responsabilités transverses
 
