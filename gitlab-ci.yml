@@ -1,0 +1,63 @@
+# Pipeline LMS Platform : GitLab CI dans aljw-cluster
+# Étapes : test -> build (WAR) -> image (Kaniko -> Artifact Registry aljw-docker)
+# Le déploiement (DEV, STAGING, PROD) sera ajouté dans une étape suivante.
+
+stages:
+  - test
+  - build
+  - image
+
+# Un pipeline par branche, et un par demande de fusion (Merge Request)
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "--batch-mode --no-transfer-progress"
+  IMAGE_NAME: europe-west1-docker.pkg.dev/formation-equipe1/aljw-docker/lms
+
+# Cache Maven : évite de retélécharger les dépendances à chaque job
+default:
+  cache:
+    key: maven-$CI_COMMIT_REF_SLUG
+    paths:
+      - .m2/repository
+
+# Job 1 : compilation et tests unitaires (Java 17, comme le pom.xml)
+maven-test:
+  stage: test
+  image: maven:3.9.9-eclipse-temurin-17
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+
+# Job 2 : construction du WAR, conservé comme artefact
+# (réutilisé par l'image Docker et, plus tard, par le déploiement SSH sur les VM)
+maven-package:
+  stage: build
+  image: maven:3.9.9-eclipse-temurin-17
+  script:
+    - mvn $MAVEN_CLI_OPTS package -DskipTests
+  artifacts:
+    paths:
+      - target/lms.war
+    expire_in: 1 week
+
+# Job 3 : construction et publication de l'image avec Kaniko
+# (pas de Docker dans Docker, donc pas de pod privilégié).
+# L'authentification vers Artifact Registry se fait par Workload Identity :
+# aucune clé, aucun mot de passe dans GitLab.
+docker-image:
+  stage: image
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  needs: ["maven-package"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+  script:
+    - /kaniko/executor
+        --context "$CI_PROJECT_DIR"
+        --dockerfile "$CI_PROJECT_DIR/Dockerfile"
+        --destination "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
