@@ -1,0 +1,110 @@
+# GitLab CE dans aljw-cluster (namespace cicd)
+# Deux valeurs sont à remplacer à l'application (jamais écrites dans Git) :
+#   __GITLAB_IP__     : l'adresse IP publique réservée pour GitLab
+#   __ALLOWED_CIDR__  : l'adresse publique autorisée, au format x.x.x.x/32
+# Le mot de passe root vient du secret "gitlab-root" (créé à part, jamais dans ce fichier).
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-data
+  namespace: cicd
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard-rwo   # disque Google pd-balanced
+  resources:
+    requests:
+      storage: 30Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  namespace: cicd
+  labels:
+    app: gitlab
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate        # le volume ne peut être attaché qu'à un seul pod à la fois
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      nodeSelector:
+        pool: gitlab      # va sur le nœud du pool gitlab-pool
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:latest   # à figer sur un numéro de version après le premier démarrage
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: GITLAB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-root
+                  key: password
+            - name: GITLAB_OMNIBUS_CONFIG
+              value: |
+                external_url 'http://__GITLAB_IP__'
+                puma['worker_processes'] = 2
+                sidekiq['concurrency'] = 10
+                prometheus_monitoring['enable'] = false
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              memory: 8Gi
+          startupProbe:          # GitLab met 5 à 10 minutes à démarrer
+            tcpSocket:
+              port: 80
+            periodSeconds: 10
+            failureThreshold: 90
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            periodSeconds: 15
+          volumeMounts:
+            - name: data
+              mountPath: /etc/gitlab
+              subPath: config
+            - name: data
+              mountPath: /var/log/gitlab
+              subPath: logs
+            - name: data
+              mountPath: /var/opt/gitlab
+              subPath: data
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitlab-data
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: cicd
+spec:
+  type: LoadBalancer
+  loadBalancerIP: __GITLAB_IP__
+  loadBalancerSourceRanges:
+    - "__ALLOWED_CIDR__"
+  selector:
+    app: gitlab
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
