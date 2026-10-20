@@ -1,13 +1,19 @@
-# Étape 1 : On fabrique l'application avec Maven
-FROM maven:3.9-eclipse-temurin-21 AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src/ src/
-RUN mvn clean package -DskipTests -q
+# Image de l'application LMS Platform (Jakarta EE 10 : Tomcat 10.1, Java 17, base H2)
+# Le WAR est construit par le pipeline (étape maven-package) : target/lms.war
+FROM tomcat:10.1-jdk17-temurin
 
-# Étape 2 : On met l'application dans Tomcat pour qu'elle tourne
-FROM tomcat:11.0-jre21
-RUN rm -rf /usr/local/tomcat/webapps/*
-COPY --from=build /app/target/lms.war /usr/local/tomcat/webapps/lms.war
+# Utilisateur sans droits d'administrateur + dossier de données H2
+RUN groupadd --system lms \
+ && useradd --system --gid lms --home-dir /usr/local/tomcat lms \
+ && mkdir -p /data/lms \
+ && chown -R lms:lms /data/lms /usr/local/tomcat
+
+COPY --chown=lms:lms target/lms.war /usr/local/tomcat/webapps/lms.war
+
+# Dossier de données (base H2, bundles, sauvegardes)
+ENV CATALINA_OPTS="-Dlms.data.dir=/data/lms"
+VOLUME /data/lms
+
+USER lms
 EXPOSE 8080
+# L'application répond sur http://<hôte>:8080/lms/

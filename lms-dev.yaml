@@ -1,0 +1,89 @@
+# LMS Platform : environnement DEV dans aljw-cluster (namespace dev)
+# Le mot de passe admin n'est PAS ici : il est dans le secret "lms-admin".
+# __IMAGE__ est remplacé à l'application par l'image construite par la pipeline.
+
+# Disque pour la base H2 (fichiers dans /data/lms)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lms-data
+  namespace: dev
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard-rwo
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lms
+  namespace: dev
+  labels:
+    app: lms
+spec:
+  replicas: 1                 # H2 en fichier : une seule instance (verrou de fichier)
+  strategy:
+    type: Recreate            # l'ancien pod s'arrête avant le nouveau (même verrou)
+  selector:
+    matchLabels:
+      app: lms
+  template:
+    metadata:
+      labels:
+        app: lms
+    spec:
+      securityContext:
+        fsGroup: 2000         # le disque est accessible en écriture à l'utilisateur lms
+      containers:
+        - name: lms
+          image: __IMAGE__
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LMS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lms-admin
+                  key: password
+            # remplace la valeur du Dockerfile : dossier de données + mot de passe admin
+            - name: CATALINA_OPTS
+              value: "-Dlms.data.dir=/data/lms -Dlms.admin.password=$(LMS_ADMIN_PASSWORD)"
+          volumeMounts:
+            - name: data
+              mountPath: /data/lms
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+          startupProbe:       # laisse jusqu'à 3 minutes à Tomcat pour démarrer
+            httpGet:
+              path: /lms/
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /lms/
+              port: 8080
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: lms-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lms
+  namespace: dev
+spec:
+  type: ClusterIP             # interne : pas d'IP publique pour DEV
+  selector:
+    app: lms
+  ports:
+    - port: 80
+      targetPort: 8080

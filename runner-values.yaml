@@ -1,0 +1,20 @@
+﻿# Réglages du GitLab Runner (chart Helm gitlab/gitlab-runner) dans aljw-cluster
+# Le jeton du Runner n'est PAS ici : il est dans le secret Kubernetes "gitlab-runner-secret".
+gitlabUrl: http://gitlab.cicd.svc.cluster.local
+concurrent: 3
+rbac:
+  create: true
+runners:
+  secret: gitlab-runner-secret
+  executor: kubernetes
+  config: |
+    [[runners]]
+      clone_url = "http://gitlab.cicd.svc.cluster.local"
+      [runners.kubernetes]
+        namespace = "cicd"
+        service_account = "gitlab-jobs"
+        image = "alpine:3.20"
+        privileged = false
+        cpu_request = "500m"
+        memory_request = "1Gi"
+        memory_limit = "3Gi"
