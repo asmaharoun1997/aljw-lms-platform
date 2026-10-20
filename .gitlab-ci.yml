@@ -1,11 +1,13 @@
 # Pipeline LMS Platform : GitLab CI dans aljw-cluster
-# Étapes : test -> build (WAR) -> image (Kaniko -> Artifact Registry aljw-docker)
-# Le déploiement (DEV, STAGING, PROD) sera ajouté dans une étape suivante.
+# develop : test -> WAR -> image -> DEV (automatique)
+# main    : test -> WAR -> image -> STAGING (automatique) -> PROD (bouton manuel)
+# STAGING et PROD sont des namespaces du cluster, avec la même image que DEV.
 
 stages:
   - test
   - build
   - image
+  - deploy
 
 # Un pipeline par branche, et un par demande de fusion (Merge Request)
 workflow:
@@ -33,7 +35,6 @@ maven-test:
     - mvn $MAVEN_CLI_OPTS test
 
 # Job 2 : construction du WAR, conservé comme artefact
-# (réutilisé par l'image Docker et, plus tard, par le déploiement SSH sur les VM)
 maven-package:
   stage: build
   image: maven:3.9.9-eclipse-temurin-17
@@ -46,8 +47,7 @@ maven-package:
 
 # Job 3 : construction et publication de l'image avec Kaniko
 # (pas de Docker dans Docker, donc pas de pod privilégié).
-# L'authentification vers Artifact Registry se fait par Workload Identity :
-# aucune clé, aucun mot de passe dans GitLab.
+# Authentification vers Artifact Registry par Workload Identity : aucune clé.
 docker-image:
   stage: image
   image:
@@ -61,3 +61,54 @@ docker-image:
         --context "$CI_PROJECT_DIR"
         --dockerfile "$CI_PROJECT_DIR/Dockerfile"
         --destination "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
+
+# Déploiement : le Runner met à jour l'image du Deployment "lms" dans le namespace voulu.
+# Le job s'exécute avec le compte Kubernetes gitlab-jobs, qui n'a le droit de modifier
+# que le Deployment lms de dev, staging et prod (fichier rbac-deploy.yaml).
+.deploy:
+  stage: deploy
+  image: alpine:3.20
+  before_script:
+    # kubectl d'une version proche du cluster (1.36), vérifié par sa somme de contrôle
+    - apk add --no-cache curl
+    - curl -fsSLo /usr/local/bin/kubectl https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl
+    - curl -fsSLo /tmp/kubectl.sha256 https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl.sha256
+    - echo "$(cat /tmp/kubectl.sha256)  /usr/local/bin/kubectl" | sha256sum -c -
+    - chmod +x /usr/local/bin/kubectl
+  script:
+    - kubectl -n "$DEPLOY_NS" set image deployment/lms lms="$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
+    - kubectl -n "$DEPLOY_NS" rollout status deployment/lms --timeout=300s
+
+# DEV : automatique à chaque push sur develop
+deploy-dev:
+  extends: .deploy
+  needs: ["docker-image"]
+  variables:
+    DEPLOY_NS: dev
+  environment:
+    name: dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+# STAGING : automatique à chaque fusion sur main (répétition générale de PROD)
+deploy-staging:
+  extends: .deploy
+  needs: ["docker-image"]
+  variables:
+    DEPLOY_NS: staging
+  environment:
+    name: staging
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# PROD : même image que STAGING, mais après un clic manuel
+deploy-prod:
+  extends: .deploy
+  needs: ["deploy-staging"]
+  variables:
+    DEPLOY_NS: prod
+  environment:
+    name: prod
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
