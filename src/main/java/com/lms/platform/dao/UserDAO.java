@@ -99,7 +99,7 @@ public class UserDAO {
     // ── Groups CRUD ──
     public long createGroup(Group g) throws SQLException {
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(
-                "INSERT INTO groups (name,description) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS)) {
+                "INSERT INTO `groups` (name,description) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, g.getName()); ps.setString(2, g.getDescription());
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) { if (rs.next()) return rs.getLong(1); }
@@ -109,7 +109,7 @@ public class UserDAO {
 
     public List<Group> findAllGroups() throws SQLException {
         List<Group> list = new ArrayList<>();
-        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("SELECT * FROM groups ORDER BY name");
+        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("SELECT * FROM `groups` ORDER BY name");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) { Group g = new Group(); g.setId(rs.getLong("id")); g.setName(rs.getString("name"));
                 g.setDescription(rs.getString("description")); g.setCreatedAt(rs.getTimestamp("created_at")); list.add(g); }
@@ -118,13 +118,13 @@ public class UserDAO {
     }
 
     public boolean deleteGroup(long id) throws SQLException {
-        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("DELETE FROM groups WHERE id=?")) {
+        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("DELETE FROM `groups` WHERE id=?")) {
             ps.setLong(1, id); return ps.executeUpdate() > 0;
         }
     }
 
     public boolean updateGroup(long id, String name, String desc) throws SQLException {
-        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("UPDATE groups SET name=?,description=? WHERE id=?")) {
+        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("UPDATE `groups` SET name=?,description=? WHERE id=?")) {
             ps.setString(1, name); ps.setString(2, desc); ps.setLong(3, id); return ps.executeUpdate() > 0;
         }
     }
@@ -189,7 +189,7 @@ public class UserDAO {
     // ── User-Group associations ──
     public void addUserToGroup(long userId, long groupId) throws SQLException {
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(
-                "MERGE INTO user_groups (user_id,group_id) VALUES (?,?)")) {
+                "INSERT IGNORE INTO user_groups (user_id,group_id) VALUES (?,?)")) {
             ps.setLong(1, userId); ps.setLong(2, groupId); ps.executeUpdate();
         }
     }

@@ -41,7 +41,7 @@ public class AuditDAO {
         String sql = """
             SELECT user_id, user_name, session_id, MAX(created_at) last_activity,
             MIN(CASE WHEN action='LOGIN' THEN created_at END) login_time, COUNT(*) actions
-            FROM audit_log WHERE created_at > DATEADD('HOUR', -24, CURRENT_TIMESTAMP)
+            FROM audit_log WHERE created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
             GROUP BY user_id, user_name, session_id ORDER BY last_activity DESC""";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -57,7 +57,7 @@ public class AuditDAO {
 
     public int cleanup(int daysOld) throws SQLException {
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(
-                "DELETE FROM audit_log WHERE created_at < DATEADD('DAY', -?, CURRENT_TIMESTAMP)")) {
+                "DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)")) {
             ps.setInt(1, daysOld); return ps.executeUpdate();
         }
     }

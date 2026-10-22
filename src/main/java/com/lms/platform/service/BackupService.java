@@ -20,7 +20,7 @@ import java.util.*;
  * Schema evolution tolerance:
  * - Export: every row as child elements named by column
  * - Import: matches columns by name, unknown columns ignored, missing use DB defaults
- * - FK constraints disabled during restore (SET REFERENTIAL_INTEGRITY FALSE)
+ * - FK constraints disabled during restore (SET FOREIGN_KEY_CHECKS=0)
  * - Tables processed in dependency order
  * - Per-row error catching: partial restore possible
  * - Auto-backup before restore (safety net)
@@ -82,7 +82,7 @@ public class BackupService {
         int rowCount = 0;
 
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM " + table + " ORDER BY 1")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM " + q(table) + " ORDER BY 1")) {
 
             ResultSetMetaData meta = rs.getMetaData();
             int colCount = meta.getColumnCount();
@@ -155,11 +155,11 @@ public class BackupService {
 
             try {
                 // 1. Disable FK constraints
-                exec(conn, "SET REFERENTIAL_INTEGRITY FALSE");
+                exec(conn, "SET FOREIGN_KEY_CHECKS=0");
 
                 // 2. Clear tables in reverse dependency order
                 for (int i = TABLES.length - 1; i >= 0; i--) {
-                    try { exec(conn, "DELETE FROM " + TABLES[i]); }
+                    try { exec(conn, "DELETE FROM " + q(TABLES[i])); }
                     catch (SQLException e) { result.warnings.add("Clear " + TABLES[i] + ": " + trunc(e)); }
                 }
 
@@ -181,21 +181,20 @@ public class BackupService {
                     }
                 }
 
-                // 4. Reset auto-increment sequences
-                resetSequences(conn);
-
-                // 5. Re-enable FK constraints
-                exec(conn, "SET REFERENTIAL_INTEGRITY TRUE");
-
+                // 4. Commit des donnees (ALTER TABLE ci-dessous fait un commit implicite en MySQL)
                 conn.commit();
                 result.success = true;
+
+                // 5. Reset auto-increment, puis reactiver les FK
+                resetSequences(conn);
+                exec(conn, "SET FOREIGN_KEY_CHECKS=1");
 
                 System.out.println("[LMS-Backup] === RESTORE OK === " +
                         result.totalRows + " rows, " + result.warnings.size() + " warnings");
 
             } catch (Exception e) {
                 conn.rollback();
-                try { exec(conn, "SET REFERENTIAL_INTEGRITY TRUE"); } catch (Exception ignored) {}
+                try { exec(conn, "SET FOREIGN_KEY_CHECKS=1"); } catch (Exception ignored) {}
                 result.success = false;
                 result.error = e.getClass().getSimpleName() + ": " + e.getMessage();
                 System.err.println("[LMS-Backup] RESTORE FAILED: " + e.getMessage());
@@ -256,19 +255,19 @@ public class BackupService {
 
         if (cols.isEmpty()) return;
 
-        String sql = "INSERT INTO " + tableName + " (" +
+        String sql = "INSERT INTO " + q(tableName) + " (" +
                 String.join(",", cols) + ") VALUES (" +
                 String.join(",", Collections.nCopies(cols.size(), "?")) + ")";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (int i = 0; i < vals.size(); i++) ps.setString(i + 1, vals.get(i));
+            for (int i = 0; i < vals.size(); i++) ps.setString(i + 1, normalize(vals.get(i)));
             ps.executeUpdate();
         }
     }
 
     private Set<String> getTableColumns(Connection conn, String tableName) throws SQLException {
         Set<String> columns = new LinkedHashSet<>();
-        try (ResultSet rs = conn.getMetaData().getColumns(null, null, tableName.toUpperCase(), null)) {
+        try (ResultSet rs = conn.getMetaData().getColumns(conn.getCatalog(), null, tableName.toLowerCase(), null)) {
             while (rs.next()) columns.add(rs.getString("COLUMN_NAME").toLowerCase());
         }
         if (columns.isEmpty()) throw new SQLException("Table inconnue: " + tableName);
@@ -278,8 +277,8 @@ public class BackupService {
     private void resetSequences(Connection conn) {
         for (String t : IDENTITY_TABLES) {
             try (Statement stmt = conn.createStatement()) {
-                ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(id),0)+1 FROM " + t);
-                if (rs.next()) stmt.execute("ALTER TABLE " + t + " ALTER COLUMN id RESTART WITH " + rs.getLong(1));
+                ResultSet rs = stmt.executeQuery("SELECT COALESCE(MAX(id),0)+1 FROM " + q(t));
+                if (rs.next()) stmt.execute("ALTER TABLE " + q(t) + " AUTO_INCREMENT = " + rs.getLong(1));
             } catch (SQLException ignored) {}
         }
     }
@@ -293,6 +292,17 @@ public class BackupService {
             if (nl.item(i) instanceof Element el && tag.equals(el.getTagName())) list.add(el);
         }
         return list;
+    }
+
+    /** Entoure le nom de table de backticks (groups est un mot reserve en MySQL 8). */
+    private static String q(String table) { return "`" + table + "`"; }
+
+    /** Les backups issus de H2 contiennent TRUE/FALSE ; MySQL (tinyint) attend 1/0. */
+    private static String normalize(String v) {
+        if (v == null) return null;
+        if ("true".equalsIgnoreCase(v)) return "1";
+        if ("false".equalsIgnoreCase(v)) return "0";
+        return v;
     }
 
     private void exec(Connection conn, String sql) throws SQLException {

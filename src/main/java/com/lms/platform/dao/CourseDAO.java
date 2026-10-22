@@ -28,7 +28,7 @@ public class CourseDAO {
     }
 
     public Course findById(long id) throws SQLException {
-        String sql = "SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.id=?";
+        String sql = "SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.id=?";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) { if (rs.next()) return map(rs); }
@@ -37,7 +37,7 @@ public class CourseDAO {
     }
 
     public Course findByBundleId(String bundleId) throws SQLException {
-        String sql = "SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.bundle_id=?";
+        String sql = "SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.bundle_id=?";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, bundleId);
             try (ResultSet rs = ps.executeQuery()) { if (rs.next()) return map(rs); }
@@ -47,7 +47,7 @@ public class CourseDAO {
 
     public List<Course> findAll() throws SQLException {
         List<Course> list = new ArrayList<>();
-        String sql = "SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id ORDER BY c.title";
+        String sql = "SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id ORDER BY c.title";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(map(rs));
         }
@@ -56,7 +56,7 @@ public class CourseDAO {
 
     public List<Course> findAllByType(Course.ContentType type) throws SQLException {
         List<Course> list = new ArrayList<>();
-        String sql = "SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.content_type=? ORDER BY c.title";
+        String sql = "SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.content_type=? ORDER BY c.title";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, type.name());
             try (ResultSet rs = ps.executeQuery()) { while (rs.next()) list.add(map(rs)); }
@@ -66,7 +66,7 @@ public class CourseDAO {
 
     public List<Course> findByAuthorAndType(long authorId, Course.ContentType type) throws SQLException {
         List<Course> list = new ArrayList<>();
-        String sql = "SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.author_id=? AND c.content_type=? ORDER BY c.title";
+        String sql = "SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.author_id=? AND c.content_type=? ORDER BY c.title";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, authorId); ps.setString(2, type.name());
             try (ResultSet rs = ps.executeQuery()) { while (rs.next()) list.add(map(rs)); }
@@ -76,7 +76,7 @@ public class CourseDAO {
 
     public List<Course> findByAuthor(long authorId) throws SQLException {
         List<Course> list = new ArrayList<>();
-        String sql = "SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.author_id=? ORDER BY c.title";
+        String sql = "SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c LEFT JOIN users u ON c.author_id=u.id WHERE c.author_id=? ORDER BY c.title";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, authorId);
             try (ResultSet rs = ps.executeQuery()) { while (rs.next()) list.add(map(rs)); }
@@ -87,7 +87,7 @@ public class CourseDAO {
     public List<Course> findPublishedForUser(long userId) throws SQLException {
         List<Course> list = new ArrayList<>();
         String sql = """
-            SELECT DISTINCT c.*, u.prenom||' '||u.nom as author_name FROM courses c
+            SELECT DISTINCT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c
             LEFT JOIN users u ON c.author_id=u.id
             JOIN course_groups cg ON c.id=cg.course_id
             JOIN user_groups ug ON cg.group_id=ug.group_id
@@ -129,7 +129,7 @@ public class CourseDAO {
     public List<Course> findByGroup(long groupId) throws SQLException {
         List<Course> list = new ArrayList<>();
         String sql = """
-            SELECT c.*, u.prenom||' '||u.nom as author_name FROM courses c
+            SELECT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c
             LEFT JOIN users u ON c.author_id=u.id
             JOIN course_groups cg ON c.id=cg.course_id
             WHERE cg.group_id=? ORDER BY c.title""";
@@ -157,7 +157,7 @@ public class CourseDAO {
     // ── Course-Group ──
     public void assignGroup(long courseId, long groupId) throws SQLException {
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(
-                "MERGE INTO course_groups (course_id,group_id) VALUES (?,?)")) {
+                "INSERT IGNORE INTO course_groups (course_id,group_id) VALUES (?,?)")) {
             ps.setLong(1, courseId); ps.setLong(2, groupId); ps.executeUpdate();
         }
     }
@@ -209,7 +209,7 @@ public class CourseDAO {
     public List<Course> findPublishedDocumentsForUser(long userId) throws SQLException {
         List<Course> list = new ArrayList<>();
         String sql = """
-            SELECT DISTINCT c.*, u.prenom||' '||u.nom as author_name FROM courses c
+            SELECT DISTINCT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c
             LEFT JOIN users u ON c.author_id=u.id
             JOIN course_groups cg ON c.id=cg.course_id
             JOIN user_groups ug ON cg.group_id=ug.group_id
@@ -250,7 +250,7 @@ public class CourseDAO {
         List<Course> list = new ArrayList<>();
         String q = "%" + query.toLowerCase().trim() + "%";
         String sql = """
-            SELECT DISTINCT c.*, u.prenom||' '||u.nom as author_name FROM courses c
+            SELECT DISTINCT c.*, CONCAT(u.prenom,' ',u.nom) as author_name FROM courses c
             LEFT JOIN users u ON c.author_id=u.id
             LEFT JOIN search_index si ON c.id=si.course_id
             WHERE c.status='PUBLISHED'

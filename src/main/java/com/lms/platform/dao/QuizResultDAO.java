@@ -43,16 +43,16 @@ public class QuizResultDAO {
     }
 
     public List<QuizResult> findByCourse(long courseId) throws SQLException {
-        return query("SELECT r.*, COALESCE(u.prenom||' '||u.nom, 'Utilisateur #'||r.user_id) as user_name, COALESCE(c.title, 'Cours #'||r.course_id) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id WHERE r.course_id=? ORDER BY r.submitted_at DESC", courseId);
+        return query("SELECT r.*, COALESCE(CONCAT(u.prenom,' ',u.nom), CONCAT('Utilisateur #',r.user_id)) as user_name, COALESCE(c.title, CONCAT('Cours #',r.course_id)) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id WHERE r.course_id=? ORDER BY r.submitted_at DESC", courseId);
     }
 
     public List<QuizResult> findByUser(long userId) throws SQLException {
-        return query("SELECT r.*, COALESCE(u.prenom||' '||u.nom, 'Utilisateur #'||r.user_id) as user_name, COALESCE(c.title, 'Cours #'||r.course_id) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id WHERE r.user_id=? ORDER BY r.submitted_at DESC", userId);
+        return query("SELECT r.*, COALESCE(CONCAT(u.prenom,' ',u.nom), CONCAT('Utilisateur #',r.user_id)) as user_name, COALESCE(c.title, CONCAT('Cours #',r.course_id)) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id WHERE r.user_id=? ORDER BY r.submitted_at DESC", userId);
     }
 
     public List<QuizResult> findAll() throws SQLException {
         List<QuizResult> list = new ArrayList<>();
-        String sql = "SELECT r.*, COALESCE(u.prenom||' '||u.nom, 'Utilisateur #'||r.user_id) as user_name, COALESCE(c.title, 'Cours #'||r.course_id) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id ORDER BY r.submitted_at DESC";
+        String sql = "SELECT r.*, COALESCE(CONCAT(u.prenom,' ',u.nom), CONCAT('Utilisateur #',r.user_id)) as user_name, COALESCE(c.title, CONCAT('Cours #',r.course_id)) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id ORDER BY r.submitted_at DESC";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(map(rs));
         }
@@ -60,7 +60,7 @@ public class QuizResultDAO {
     }
 
     public QuizResult findById(long id) throws SQLException {
-        String sql = "SELECT r.*, COALESCE(u.prenom||' '||u.nom, 'Utilisateur #'||r.user_id) as user_name, COALESCE(c.title, 'Cours #'||r.course_id) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id WHERE r.id=?";
+        String sql = "SELECT r.*, COALESCE(CONCAT(u.prenom,' ',u.nom), CONCAT('Utilisateur #',r.user_id)) as user_name, COALESCE(c.title, CONCAT('Cours #',r.course_id)) as course_title FROM quiz_results r LEFT JOIN users u ON r.user_id=u.id LEFT JOIN courses c ON r.course_id=c.id WHERE r.id=?";
         try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) { if (rs.next()) return map(rs); }

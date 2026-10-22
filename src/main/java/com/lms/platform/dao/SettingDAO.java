@@ -15,7 +15,7 @@ public class SettingDAO {
     }
 
     public void set(String key, String value) throws SQLException {
-        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("MERGE INTO settings KEY(setting_key) VALUES (?,?)")) {
+        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement("INSERT INTO settings (setting_key,setting_value) VALUES (?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)")) {
             ps.setString(1, key); ps.setString(2, value); ps.executeUpdate();
         }
     }
