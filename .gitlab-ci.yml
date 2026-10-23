@@ -2,15 +2,18 @@
 # develop : test -> WAR -> image -> mise a jour du tag DEV dans le depot GitOps
 # main    : test -> WAR -> image -> STAGING (automatique) -> PROD (bouton manuel)
 #
-# La pipeline ne touche JAMAIS au cluster : elle publie l'image, puis modifie
-# le tag dans k8s/overlays/<env>/kustomization.yaml du depot aljw/iaas-gitops.
-# Flux (dans le cluster) detecte le changement et deploie (delai : jusqu'a 5 min).
+# La pipeline ne touche JAMAIS au cluster : elle publie l'image dans Artifact Registry,
+# puis modifie le tag dans k8s/overlays/<env>/kustomization.yaml du depot aljw/iaas-gitops.
+# Flux (dans le cluster) detecte le changement et deploie (delai : 5 minutes au plus).
 #
-# Variables CI/CD a creer dans le projet (Settings > CI/CD > Variables),
-# toutes en "Protected" (visibles seulement sur les branches protegees) :
-#   GCP_SA_KEY    type File    cle du compte de service qui pousse les images
-#                              (role artifactregistry.writer sur le depot aljw-docker seulement)
-#   GITOPS_TOKEN  Masked       jeton du projet iaas-gitops (write_repository, role Developer)
+# Authentification vers Google Cloud SANS CLE : Workload Identity Federation.
+# Le job presente un jeton signe par GitLab (id_tokens), valable quelques minutes ;
+# Google le change contre un acces temporaire au compte aljw-ci-push, qui peut
+# seulement ecrire dans le depot d'images aljw-docker. Cela ne marche que pour le projet
+# aljw/lms-platform et seulement sur les branches PROTEGEES (main et develop).
+#
+# Variable CI/CD a creer dans le projet (Settings > CI/CD > Variables) :
+#   GITOPS_TOKEN  Masked + Protected : jeton de projet de iaas-gitops (write_repository, Developer)
 
 stages:
   - test
@@ -30,6 +33,9 @@ variables:
   IMAGE_NAME: europe-west1-docker.pkg.dev/formation-equipe1/aljw-docker/lms
   GITOPS_HOST: git.aljw-cluster-iaas.kn8x.net
   GITOPS_REPO: aljw/iaas-gitops
+  # Identifiants Google (publics, aucun secret) : voir la federation aljw-gitlab
+  GCP_WIF_PROVIDER: projects/950051339107/locations/global/workloadIdentityPools/aljw-gitlab/providers/gitlab
+  GCP_PUSH_SA: aljw-ci-push@formation-equipe1.iam.gserviceaccount.com
 
 # Cache Maven : evite de retelecharger les dependances a chaque job
 default:
@@ -56,20 +62,48 @@ maven-package:
       - target/lms.war
     expire_in: 1 week
 
-# Job 3 : construction et publication de l'image avec Kaniko (pas de Docker dans Docker).
-# Authentification vers Artifact Registry par la cle du compte de service GCP_SA_KEY
-# (variable de type File : GitLab donne le chemin du fichier, jamais son contenu).
+# Job 3 : obtenir un acces temporaire a Artifact Registry, sans cle.
+# Le resultat (un fichier d'authentification valable environ 1 heure) est transmis
+# au job suivant et supprime au bout de 30 minutes.
+gar-auth:
+  stage: build
+  image: google/cloud-sdk:500.0.0-alpine
+  cache: []
+  id_tokens:
+    GCP_ID_TOKEN:
+      aud: aljw-gar
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+  script:
+    - printf '%s' "$GCP_ID_TOKEN" > "$CI_PROJECT_DIR/.oidc_token"
+    - >
+      gcloud iam workload-identity-pools create-cred-config "$GCP_WIF_PROVIDER"
+      --service-account="$GCP_PUSH_SA"
+      --credential-source-file="$CI_PROJECT_DIR/.oidc_token"
+      --credential-source-type=text
+      --output-file="$CI_PROJECT_DIR/.wif.json"
+    - gcloud auth login --cred-file="$CI_PROJECT_DIR/.wif.json" --quiet
+    - mkdir -p docker-config
+    - AUTH=$(printf 'oauth2accesstoken:%s' "$(gcloud auth print-access-token)" | base64 | tr -d '\n')
+    - printf '{"auths":{"europe-west1-docker.pkg.dev":{"auth":"%s"}}}' "$AUTH" > docker-config/config.json
+    - rm -f "$CI_PROJECT_DIR/.oidc_token" "$CI_PROJECT_DIR/.wif.json"
+  artifacts:
+    paths:
+      - docker-config/config.json
+    expire_in: 30 minutes
+
+# Job 4 : construction et publication de l'image avec Kaniko (pas de Docker dans Docker).
 docker-image:
   stage: image
   image:
     name: gcr.io/kaniko-project/executor:v1.23.2-debug
     entrypoint: [""]
-  needs: ["maven-package"]
-  variables:
-    GOOGLE_APPLICATION_CREDENTIALS: $GCP_SA_KEY
+  needs: ["maven-package", "gar-auth"]
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
   script:
+    - mkdir -p /kaniko/.docker
+    - cp "$CI_PROJECT_DIR/docker-config/config.json" /kaniko/.docker/config.json
     - /kaniko/executor
         --context "$CI_PROJECT_DIR"
         --dockerfile "$CI_PROJECT_DIR/Dockerfile"
