@@ -1,7 +1,16 @@
-# Pipeline LMS Platform : GitLab CI dans aljw-cluster
-# develop : test -> WAR -> image -> DEV (automatique)
+# Pipeline LMS Platform : GitLab CI + GitOps (Flux) sur le cluster kubeadm
+# develop : test -> WAR -> image -> mise a jour du tag DEV dans le depot GitOps
 # main    : test -> WAR -> image -> STAGING (automatique) -> PROD (bouton manuel)
-# STAGING et PROD sont des namespaces du cluster, avec la même image que DEV.
+#
+# La pipeline ne touche JAMAIS au cluster : elle publie l'image, puis modifie
+# le tag dans k8s/overlays/<env>/kustomization.yaml du depot aljw/iaas-gitops.
+# Flux (dans le cluster) detecte le changement et deploie (delai : jusqu'a 5 min).
+#
+# Variables CI/CD a creer dans le projet (Settings > CI/CD > Variables),
+# toutes en "Protected" (visibles seulement sur les branches protegees) :
+#   GCP_SA_KEY    type File    cle du compte de service qui pousse les images
+#                              (role artifactregistry.writer sur le depot aljw-docker seulement)
+#   GITOPS_TOKEN  Masked       jeton du projet iaas-gitops (write_repository, role Developer)
 
 stages:
   - test
@@ -19,8 +28,10 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   MAVEN_CLI_OPTS: "--batch-mode --no-transfer-progress"
   IMAGE_NAME: europe-west1-docker.pkg.dev/formation-equipe1/aljw-docker/lms
+  GITOPS_HOST: git.aljw-cluster-iaas.kn8x.net
+  GITOPS_REPO: aljw/iaas-gitops
 
-# Cache Maven : évite de retélécharger les dépendances à chaque job
+# Cache Maven : evite de retelecharger les dependances a chaque job
 default:
   cache:
     key: maven-$CI_COMMIT_REF_SLUG
@@ -34,7 +45,7 @@ maven-test:
   script:
     - mvn $MAVEN_CLI_OPTS test
 
-# Job 2 : construction du WAR, conservé comme artefact
+# Job 2 : construction du WAR, conserve comme artefact
 maven-package:
   stage: build
   image: maven:3.9.9-eclipse-temurin-17
@@ -45,15 +56,17 @@ maven-package:
       - target/lms.war
     expire_in: 1 week
 
-# Job 3 : construction et publication de l'image avec Kaniko
-# (pas de Docker dans Docker, donc pas de pod privilégié).
-# Authentification vers Artifact Registry par Workload Identity : aucune clé.
+# Job 3 : construction et publication de l'image avec Kaniko (pas de Docker dans Docker).
+# Authentification vers Artifact Registry par la cle du compte de service GCP_SA_KEY
+# (variable de type File : GitLab donne le chemin du fichier, jamais son contenu).
 docker-image:
   stage: image
   image:
     name: gcr.io/kaniko-project/executor:v1.23.2-debug
     entrypoint: [""]
   needs: ["maven-package"]
+  variables:
+    GOOGLE_APPLICATION_CREDENTIALS: $GCP_SA_KEY
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
   script:
@@ -62,51 +75,59 @@ docker-image:
         --dockerfile "$CI_PROJECT_DIR/Dockerfile"
         --destination "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
 
-# Déploiement : le Runner met à jour l'image du Deployment "lms" dans le namespace voulu.
-# Le job s'exécute avec le compte Kubernetes gitlab-jobs, qui n'a le droit de modifier
-# que le Deployment lms de dev, staging et prod (fichier rbac-deploy.yaml).
-.deploy:
+# Deploiement GitOps : on change le tag de l'image dans l'overlay de l'environnement,
+# puis on pousse dans le depot GitOps. Flux fait le reste.
+.deploy-gitops:
   stage: deploy
   image: alpine:3.20
+  resource_group: gitops-push
   before_script:
-    # kubectl d'une version proche du cluster (1.36), vérifié par sa somme de contrôle
-    - apk add --no-cache curl
-    - curl -fsSLo /usr/local/bin/kubectl https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl
-    - curl -fsSLo /tmp/kubectl.sha256 https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl.sha256
-    - echo "$(cat /tmp/kubectl.sha256)  /usr/local/bin/kubectl" | sha256sum -c -
-    - chmod +x /usr/local/bin/kubectl
+    - apk add --no-cache git
+    - git config --global user.name "gitlab-ci"
+    - git config --global user.email "gitlab-ci@aljw.invalid"
   script:
-    - kubectl -n "$DEPLOY_NS" set image deployment/lms lms="$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
-    - kubectl -n "$DEPLOY_NS" rollout status deployment/lms --timeout=300s
+    - |
+      git clone --depth 1 --branch main "https://oauth2:${GITOPS_TOKEN}@${GITOPS_HOST}/${GITOPS_REPO}.git" gitops
+      cd gitops
+      FILE="k8s/overlays/${DEPLOY_ENV}/kustomization.yaml"
+      sed -i -E "s|^([[:space:]]*newTag:).*|\1 ${CI_COMMIT_SHORT_SHA}|" "$FILE"
+      if git diff --quiet; then
+        echo "Le tag ${CI_COMMIT_SHORT_SHA} est deja en place pour ${DEPLOY_ENV} : rien a faire."
+        exit 0
+      fi
+      git --no-pager diff -- "$FILE"
+      git commit -am "deploy(${DEPLOY_ENV}): lms ${CI_COMMIT_SHORT_SHA}"
+      git push origin HEAD:main
+      echo "Tag pousse. Flux deploiera ${DEPLOY_ENV} au prochain cycle (5 minutes au plus)."
 
-# DEV : automatique à chaque push sur develop
+# DEV : automatique a chaque push sur develop
 deploy-dev:
-  extends: .deploy
+  extends: .deploy-gitops
   needs: ["docker-image"]
   variables:
-    DEPLOY_NS: dev
+    DEPLOY_ENV: dev
   environment:
     name: dev
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
 
-# STAGING : automatique à chaque fusion sur main (répétition générale de PROD)
+# STAGING : automatique a chaque fusion sur main (repetition generale de PROD)
 deploy-staging:
-  extends: .deploy
+  extends: .deploy-gitops
   needs: ["docker-image"]
   variables:
-    DEPLOY_NS: staging
+    DEPLOY_ENV: staging
   environment:
     name: staging
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
-# PROD : même image que STAGING, mais après un clic manuel
+# PROD : meme image que STAGING, mais apres un clic manuel
 deploy-prod:
-  extends: .deploy
+  extends: .deploy-gitops
   needs: ["deploy-staging"]
   variables:
-    DEPLOY_NS: prod
+    DEPLOY_ENV: prod
   environment:
     name: prod
   rules:
